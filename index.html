@@ -143,7 +143,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   const dmy=new THREE.Object3D();
 
   // === EDF式 밀집 블록 도시: 블록마다 여러 채 · 전부 단일 InstancedMesh(1드로우콜) ===
-  const ARENA=44, CITYMAX=205, BCOLS=[0x2a3350,0x39425c,0x323a52,0x45405c,0x2f4654,0x3a3348];
+  const ARENA=32, CITYMAX=210, BCOLS=[0x2a3350,0x39425c,0x323a52,0x45405c,0x2f4654,0x3a3348];
   const SUB=[[-11,-11],[11,-11],[-11,11],[11,11]]; const bspec=[];
   for(let n=-5;n<=5;n++)for(let m=-5;m<=5;m++){ if(bspec.length>=300) break; const bx=45*n+22.5, bz=45*m+22.5; const r=Math.hypot(bx,bz); if(r<ARENA||r>CITYMAX) continue;
     for(const s of SUB){ if(Math.random()<0.08) continue; bspec.push({ x:bx+s[0]+(Math.random()*3-1.5), z:bz+s[1]+(Math.random()*3-1.5), w:11+Math.random()*7, d:11+Math.random()*7, h:10+Math.random()*56, col:BCOLS[(Math.random()*BCOLS.length)|0] }); } }
@@ -162,10 +162,24 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     by.forEach((list,ci)=>{ if(!list.length) return; const nm=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,0.3),M(NC[ci],{em:NC[ci],ei:2.4,ro:0.4}),list.length); const d=new THREE.Object3D();
       list.forEach((s,i)=>{ const face=Math.random()<0.5, off=(face?s.d:s.w)/2+0.25, sgn=Math.random()<0.5?1:-1; d.position.set(s.x+(face?0:off*sgn), s.h*(0.4+Math.random()*0.32), s.z+(face?off*sgn:0)); d.rotation.set(0,face?0:Math.PI/2,0); d.scale.set((face?s.w:s.d)*0.5, s.h*0.26, 1); d.updateMatrix(); nm.setMatrixAt(i,d.matrix); }); nm.instanceMatrix.needsUpdate=true; scene.add(nm); }); })();
 
-  // === 거리 소품 ===
-  const lightPos=[], treePos=[], carPos=[];
-  for(let k=-4;k<=4;k++)for(let s=-4;s<=4;s++){ const rx=45*k, rz=45*s+22.5, r=Math.hypot(rx,rz); if(r<ARENA-4||r>185) continue; lightPos.push({x:rx+4,z:rz}); lightPos.push({x:rx-4,z:rz-22}); }
-  for(let k=-4;k<=4;k++)for(let m=-4;m<=4;m++){ const cx=45*k+22.5, cz=45*m+22.5, r=Math.hypot(cx,cz); if(r<ARENA-6||r>180) continue; if(Math.random()<0.55) treePos.push({x:cx+(Math.random()*24-12), z:cz+(Math.random()*24-12)}); for(let c=0;c<2;c++) if(Math.random()<0.5) carPos.push({x:45*k+ (Math.random()<0.5?4:-4), z:cz+(Math.random()*30-15), ry:(Math.random()<0.5?0:Math.PI)}); }
+  // === 거리 소품 (필드 밀도) ===
+  const lightPos=[], treePos=[], carPos=[], hydPos=[], binPos=[], dumpPos=[], barPos=[], benchPos=[], signPos=[], tlPos=[], busPos=[];
+  const inR=(x,z,lo,hi)=>{ const r=Math.hypot(x,z); return r>=(lo)&&r<=hi; };
+  // 차량 정체: 도로 차선 따라 조밀
+  const FIN=12;
+  for(let k=-4;k<=4;k++){ for(let z=-195;z<=195;z+=7.5){ if(!inR(45*k,z,FIN,195)) continue; if(Math.random()<0.55) carPos.push({x:45*k-4.5,z:z+(Math.random()*2-1),ry:Math.PI}); if(Math.random()<0.55) carPos.push({x:45*k+4.5,z:z+(Math.random()*2-1),ry:0}); } }
+  for(let s=-4;s<=4;s++){ const rz=45*s+22.5; for(let x=-195;x<=195;x+=7.5){ if(!inR(x,rz,FIN,195)) continue; if(Math.random()<0.5) carPos.push({x:x+(Math.random()*2-1),z:rz-4.5,ry:Math.PI/2}); if(Math.random()<0.5) carPos.push({x:x+(Math.random()*2-1),z:rz+4.5,ry:-Math.PI/2}); } }
+  // 가로등·표지판·소화전·쓰레기통·벤치: 도로변 조밀
+  for(let k=-4;k<=4;k++){ for(let z=-190;z<=190;z+=15){ const x=45*k; if(!inR(x,z,FIN,190)) continue; lightPos.push({x:x+6,z}); if(Math.random()<0.4) lightPos.push({x:x-6,z:z+7}); if(Math.random()<0.5) hydPos.push({x:x+7.5,z:z+3}); if(Math.random()<0.5) binPos.push({x:x-7.5,z:z-3}); if(Math.random()<0.35) benchPos.push({x:x+8,z:z-5,ry:0}); if(Math.random()<0.3) signPos.push({x:x-6.5,z:z+5}); } }
+  for(let s=-4;s<=4;s++){ const rz=45*s+22.5; for(let x=-190;x<=190;x+=15){ if(!inR(x,rz,FIN,190)) continue; lightPos.push({x,z:rz+6}); if(Math.random()<0.5) hydPos.push({x:x+3,z:rz-7.5}); if(Math.random()<0.5) binPos.push({x:x-3,z:rz+7.5}); if(Math.random()<0.3) benchPos.push({x:x-5,z:rz+8,ry:Math.PI/2}); } }
+  // 교차로 신호등 + 버스정류장, 블록 내 가로수/대형쓰레기/바리케이드
+  for(let k=-4;k<=4;k++)for(let s=-4;s<=4;s++){ const ix=45*k, iz=45*s, cx=45*k+22.5, cz=45*s+22.5;
+    if(inR(ix,iz,ARENA,190)){ tlPos.push({x:ix+5,z:iz+5,ry:0}); tlPos.push({x:ix-5,z:iz-5,ry:Math.PI}); if(Math.random()<0.25) busPos.push({x:ix+6,z:iz+12,ry:0}); }
+    if(inR(cx,cz,ARENA-4,185)){ for(let t=0;t<3;t++) if(Math.random()<0.55) treePos.push({x:cx+(Math.random()*26-13), z:cz+(Math.random()*26-13)}); if(Math.random()<0.4) dumpPos.push({x:cx+(Math.random()*16-8), z:cz+(Math.random()*16-8), ry:Math.random()*6.28}); }
+  }
+  // 아레나 가장자리 바리케이드(정체 느낌)
+  for(let a=0;a<40;a++){ const ang=a/40*6.28, r=ARENA+2+Math.random()*4; barPos.push({x:Math.cos(ang)*r, z:Math.sin(ang)*r, ry:ang+Math.PI/2}); }
+  if(carPos.length>460) carPos.length=460;
   (function(){ if(!lightPos.length) return; const pole=new THREE.InstancedMesh(new THREE.BoxGeometry(0.3,8,0.3),M(0x3a4050,{me:0.4}),lightPos.length); const head=new THREE.InstancedMesh(new THREE.BoxGeometry(1.4,0.4,0.7),M(0xfff0c0,{em:0xffdf9a,ei:2.6}),lightPos.length); const d=new THREE.Object3D(); pole.castShadow=true;
     lightPos.forEach((p,i)=>{ d.position.set(p.x,4,p.z); d.rotation.set(0,0,0); d.updateMatrix(); pole.setMatrixAt(i,d.matrix); d.position.set(p.x,7.9,p.z-0.6); d.updateMatrix(); head.setMatrixAt(i,d.matrix); }); pole.instanceMatrix.needsUpdate=true; head.instanceMatrix.needsUpdate=true; scene.add(pole); scene.add(head); })();
   (function(){ if(!treePos.length) return; const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.22,0.3,2.2,7),M(0x5a3d28,{ro:0.9,me:0}),treePos.length); const leaf=new THREE.InstancedMesh(new THREE.ConeGeometry(1.5,3.2,8),M(0x2f7a34,{ro:0.9,me:0}),treePos.length); const d=new THREE.Object3D(); trunk.castShadow=true; leaf.castShadow=true;
@@ -175,6 +189,19 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     const cbody=new THREE.InstancedMesh(new THREE.BoxGeometry(1.7,0.55,3.6),M(0xffffff,{me:0.4}),CN); const ccab=new THREE.InstancedMesh(new THREE.BoxGeometry(1.55,0.5,1.8),M(0xffffff,{me:0.4}),CN); const cglass=new THREE.InstancedMesh(new THREE.BoxGeometry(1.46,0.34,1.6),M(GLASS,glassO),CN); cbody.castShadow=true; ccab.castShadow=true; const d=new THREE.Object3D();
     carPos.forEach((p,i)=>{ const col=new THREE.Color(carCols[i%carCols.length]); d.rotation.set(0,p.ry,0); d.scale.set(1,1,1); d.position.set(p.x,0.45,p.z); d.updateMatrix(); cbody.setMatrixAt(i,d.matrix); cbody.setColorAt(i,col); d.position.set(p.x,0.92,p.z); d.updateMatrix(); ccab.setMatrixAt(i,d.matrix); ccab.setColorAt(i,col); d.position.set(p.x,0.94,p.z); d.updateMatrix(); cglass.setMatrixAt(i,d.matrix); });
     cbody.instanceMatrix.needsUpdate=true; ccab.instanceMatrix.needsUpdate=true; cglass.instanceMatrix.needsUpdate=true; if(cbody.instanceColor)cbody.instanceColor.needsUpdate=true; if(ccab.instanceColor)ccab.instanceColor.needsUpdate=true; scene.add(cbody); scene.add(ccab); scene.add(cglass); })();
+  // 거리 소품 인스턴싱(소화전/쓰레기통/더미/벤치/바리케이드/신호등/표지판/버스정류장)
+  function instMesh(geo,mat,arr,yb,cast){ if(!arr||!arr.length) return; const im=new THREE.InstancedMesh(geo,mat,arr.length); im.castShadow=!!cast; const d=new THREE.Object3D(); arr.forEach((p,i)=>{ d.position.set(p.x,(typeof yb==='function'?yb(p):yb),p.z); d.rotation.set(0,p.ry||0,0); d.scale.set(1,1,1); d.updateMatrix(); im.setMatrixAt(i,d.matrix); }); im.instanceMatrix.needsUpdate=true; scene.add(im); return im; }
+  instMesh(new THREE.CylinderGeometry(0.16,0.2,0.7,8), M(0xcf3a3a,{ro:0.6}), hydPos, 0.35, true);
+  instMesh(new THREE.CylinderGeometry(0.25,0.22,0.7,8), M(0x3a4a3f,{ro:0.8}), binPos, 0.35, true);
+  instMesh(new THREE.BoxGeometry(1.8,1.1,1.0), M(0x2f6a3a,{ro:0.8}), dumpPos, 0.55, true);
+  instMesh(new THREE.BoxGeometry(1.6,0.2,0.5), M(0x6a4a2e,{ro:0.85}), benchPos, 0.4, true);
+  instMesh(new THREE.BoxGeometry(1.9,0.9,0.5), M(0xd8d2c0,{ro:0.9}), barPos, 0.45, true);
+  instMesh(new THREE.BoxGeometry(0.2,4.2,0.2), M(0x30363f,{me:0.4}), tlPos, 2.1, true);
+  instMesh(new THREE.BoxGeometry(0.42,1.0,0.3), M(0x111417,{em:0xff5a3c,ei:1.5}), tlPos.map(p=>({x:p.x+Math.sin(p.ry)*0.4,z:p.z+Math.cos(p.ry)*0.4,ry:p.ry})), 3.8, false);
+  instMesh(new THREE.BoxGeometry(0.12,3,0.12), M(0x8a94a8,{me:0.4}), signPos, 1.5, true);
+  instMesh(new THREE.BoxGeometry(1.0,0.6,0.08), M(0x2f6bd8,{ro:0.5,em:0x0a1830,ei:0.4}), signPos, 2.7, false);
+  instMesh(new THREE.BoxGeometry(3.2,0.16,1.4), M(0x39425c,{me:0.4}), busPos, 2.6, true);
+  instMesh(new THREE.BoxGeometry(3.2,1.4,0.1), M(GLASS,glassO), busPos.map(p=>({x:p.x,z:p.z-0.65,ry:p.ry})), 1.4, false);
 
   function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; world.removeBody(b.body);
     dmy.position.set(0,-9999,0); dmy.scale.set(0.001,0.001,0.001); dmy.rotation.set(0,0,0); dmy.updateMatrix(); cityMesh.setMatrixAt(b.idx,dmy.matrix); roofMesh.setMatrixAt(b.idx,dmy.matrix); cityMesh.instanceMatrix.needsUpdate=true; roofMesh.instanceMatrix.needsUpdate=true;
@@ -185,10 +212,16 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function buildMonster(){ const g=new THREE.Group(); const skin=M(0x3a2850,{ro:0.7,me:0.1}); const glow=M(0x1c1030,{em:0xff3355,ei:2.0,ro:0.5}); const mk=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
     mk(new THREE.BoxGeometry(4,4.6,3),skin,0,4.6,0); mk(new THREE.SphereGeometry(1.15,18,18),glow,0,4.3,1.45); mk(new THREE.BoxGeometry(2.5,2.1,2.3),skin,0,7.9,0); const eye=M(0,{em:0xffee55,ei:3}); mk(new THREE.SphereGeometry(0.3,12,12),eye,-0.62,8.1,1.2); mk(new THREE.SphereGeometry(0.3,12,12),eye,0.62,8.1,1.2);
     const h1=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,-0.85,9.4,0); h1.rotation.z=0.35; const h2=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,0.85,9.4,0); h2.rotation.z=-0.35; const a1=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,-2.95,4.7,0); a1.rotation.z=0.28; const a2=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,2.95,4.7,0); a2.rotation.z=-0.28; mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,-1.15,1.55,0); mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,1.15,1.55,0);
-    g.position.set(12,0,-32); scene.add(g); return g; }
+    g.position.set(9,0,-24); scene.add(g); return g; }
   const monster=buildMonster();
   function makePerson(color){ const g=new THREE.Group(); B(g,0.17,0.3,0.11,color,0,0.25,0,{ro:0.6}); const h=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,10),M(0xf0c9a0,{ro:0.6})); h.position.y=0.46; h.castShadow=true; g.add(h); return g; }
-  const people=[]; for(let i=0;i<14;i++){ const p=makePerson(0xaeb7c9); const a=Math.random()*6.28,r=6+Math.random()*11; p.position.set(Math.cos(a)*r,0,10+Math.sin(a)*r*0.5); scene.add(p); people.push({g:p,phase:Math.random()*6.28}); }
+  // 인스턴스 군중(필드 밀도)
+  const CROWD=150, crowd=[], crowdCols=[0xaeb7c9,0xc98a8a,0x8aa0c9,0xc9c08a,0x9ac9a0,0xb59ac9,0xd0d0d0];
+  const crBody=new THREE.InstancedMesh(new THREE.BoxGeometry(0.17,0.3,0.11),M(0xffffff,{ro:0.6}),CROWD); const crHead=new THREE.InstancedMesh(new THREE.SphereGeometry(0.085,8,8),M(0xf0c9a0,{ro:0.6}),CROWD); crBody.castShadow=true;
+  for(let i=0;i<CROWD;i++){ const a=Math.random()*6.28, r=12+Math.random()*130; crowd.push({x:Math.cos(a)*r, z:Math.sin(a)*r, h:Math.random()*6.28, ph:Math.random()*6.28}); crBody.setColorAt(i,new THREE.Color(crowdCols[(Math.random()*crowdCols.length)|0])); }
+  if(crBody.instanceColor) crBody.instanceColor.needsUpdate=true; scene.add(crBody); scene.add(crHead);
+  const _cd=new THREE.Object3D();
+  function updateCrowd(dt,t,mp){ for(let i=0;i<CROWD;i++){ const p=crowd[i]; const dx=p.x-mp.x, dz=p.z-mp.z, L=Math.hypot(dx,dz)||1; const flee=L<55; let vx,vz; if(flee){ vx=dx/L; vz=dz/L; } else { p.h+=(Math.random()-0.5)*dt*1.5; vx=Math.sin(p.h); vz=Math.cos(p.h); } const spd=flee?3.4:0.9; p.x+=vx*spd*dt; p.z+=vz*spd*dt; const yy=Math.abs(Math.sin(t*6+p.ph))*0.06; const rr=Math.hypot(p.x,p.z); if(rr>175||rr<9){ const a=Math.random()*6.28, r=12+Math.random()*130; p.x=Math.cos(a)*r; p.z=Math.sin(a)*r; } _cd.rotation.set(0,Math.atan2(vx,vz),0); _cd.scale.set(1,1,1); _cd.position.set(p.x,0.25+yy,p.z); _cd.updateMatrix(); crBody.setMatrixAt(i,_cd.matrix); _cd.rotation.set(0,0,0); _cd.position.set(p.x,0.46+yy,p.z); _cd.updateMatrix(); crHead.setMatrixAt(i,_cd.matrix); } crBody.instanceMatrix.needsUpdate=true; crHead.instanceMatrix.needsUpdate=true; }
 
   // === 플레이어 인간 (레인저) ===
   // 시민과 같은 사람 크기(색/헬멧으로만 구분) — 스케일감 유지
@@ -289,7 +322,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     for(const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
     for(let i=debris.length-1;i>=0;i--){ const d0=debris[i]; d0.mesh.position.copy(d0.body.position); d0.mesh.quaternion.copy(d0.body.quaternion); d0.life-=dt; if(d0.life<0){ scene.remove(d0.mesh); world.removeBody(d0.body); debris.splice(i,1); } }
     monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1;
-    const mp=monster.position; for(const pe of people){ const g=pe.g; g.position.y=Math.abs(Math.sin(tG*6+pe.phase))*0.06; const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1; g.position.x+=dx/L*dt*1.6; g.position.z+=dz/L*dt*1.6; g.rotation.y=Math.atan2(dx,dz); if(L>75){ const a=Math.random()*6.28,r=6+Math.random()*9; g.position.x=Math.cos(a)*r; g.position.z=10+Math.sin(a)*r; } }
+    updateCrowd(dt,tG,monster.position);
 
     // 카메라
     let foc, hd;

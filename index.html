@@ -137,33 +137,50 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
 
   function makeWindowTexture(){ const c=document.createElement('canvas'); c.width=64;c.height=128; const g=c.getContext('2d'); g.fillStyle='#0c1020'; g.fillRect(0,0,64,128); for(let y=5;y<128;y+=11)for(let x=5;x<64;x+=13){ const lit=Math.random()<0.5; g.fillStyle=lit?(Math.random()<0.5?'#ffd694':'#9fd0ff'):'#161e34'; g.fillRect(x,y,8,7);} return new THREE.CanvasTexture(c); }
   const winTex=makeWindowTexture(); const bGeo=new THREE.BoxGeometry(1,1,1);
-  const bMat=new THREE.MeshStandardMaterial({color:0x2a3350,roughness:0.9,emissive:0xffffff,emissiveMap:winTex,emissiveIntensity:0.6});
+  const bMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.9,emissive:0xffffff,emissiveMap:winTex,emissiveIntensity:0.5});
   const debMat=new THREE.MeshStandardMaterial({color:0x2a3350,roughness:0.95,emissive:0x111826,emissiveIntensity:0.3});
   const buildings=[]; const debris=[]; let wrecked=0; const wreckedEl=document.getElementById('wrecked');
-  function makeBuilding(x,z,w,h,d,rot){ const mesh=new THREE.Mesh(bGeo,bMat); mesh.scale.set(w,h,d); mesh.position.set(x,h/2,z); mesh.rotation.y=rot; mesh.castShadow=true; mesh.receiveShadow=true; scene.add(mesh);
-    const body=new CANNON.Body({mass:0,collisionFilterGroup:BUILDING,collisionFilterMask:ROBOT|BUILDING|GROUND,position:new CANNON.Vec3(x,h/2,z)}); body.addShape(new CANNON.Box(new CANNON.Vec3(w/2,h/2,d/2))); body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),rot); world.addBody(body);
-    const b={mesh,body,alive:true,w,h,d,x,z}; body.addEventListener('collide',function(){ if(b.alive) destroyBuilding(b); }); buildings.push(b); }
-  const NEON=[0xff3b7b,0x39e6ff,0xffd23b,0x8affc1,0xff7a2f,0xb06bff];
-  function addBuildingDetail(x,z,w,h,d,rot){ // 옥상 물탱크/안테나/AC + 네온 간판
-    B(scene,Math.min(w*0.5,2.4),1.8,Math.min(d*0.5,2.4),0x3a4256,x,h+0.9,z,{ro:0.8,me:0.3}); B(scene,0.16,3.4,0.16,0x6a748c,x+w*0.28,h+1.7,z-d*0.28,{me:0.6}); B(scene,w*0.4,0.7,d*0.4,0x2b3140,x-w*0.2,h+0.35,z+d*0.2,{ro:0.9});
-    if(Math.random()<0.6){ const c=NEON[(Math.random()*NEON.length)|0]; const dir=new THREE.Vector3(Math.sin(rot),0,Math.cos(rot)); const off=(Math.abs(Math.sin(rot))>0.5?w:d)/2+0.2; B(scene,(Math.abs(Math.sin(rot))>0.5?d:w)*0.55,h*0.32,0.3,c,x+dir.x*off,h*0.55,z+dir.z*off,{em:c,ei:2.4,ro:0.4,ry:rot}); } }
-  for(let n=-3;n<=3;n++)for(let m=-3;m<=3;m++){ const cx=45*n+22.5, cz=45*m+22.5; const r=Math.hypot(cx,cz); if(r<55||r>155) continue; if(Math.random()<0.1) continue; const w=9+Math.random()*8, d=9+Math.random()*8, h=12+Math.random()*40, rot=(Math.random()<0.5?0:Math.PI/2); const bx=cx+(Math.random()*4-2), bz=cz+(Math.random()*4-2); makeBuilding(bx,bz,w,h,d,rot); addBuildingDetail(bx,bz,w,h,d,rot); }
-  // === 거리 소품: 가로등 / 가로수 / 주차 차량 ===
+  const dmy=new THREE.Object3D();
+
+  // === EDF式 밀집 블록 도시: 블록마다 여러 채 · 전부 단일 InstancedMesh(1드로우콜) ===
+  const ARENA=44, CITYMAX=205, BCOLS=[0x2a3350,0x39425c,0x323a52,0x45405c,0x2f4654,0x3a3348];
+  const SUB=[[-11,-11],[11,-11],[-11,11],[11,11]]; const bspec=[];
+  for(let n=-5;n<=5;n++)for(let m=-5;m<=5;m++){ if(bspec.length>=300) break; const bx=45*n+22.5, bz=45*m+22.5; const r=Math.hypot(bx,bz); if(r<ARENA||r>CITYMAX) continue;
+    for(const s of SUB){ if(Math.random()<0.08) continue; bspec.push({ x:bx+s[0]+(Math.random()*3-1.5), z:bz+s[1]+(Math.random()*3-1.5), w:11+Math.random()*7, d:11+Math.random()*7, h:10+Math.random()*56, col:BCOLS[(Math.random()*BCOLS.length)|0] }); } }
+  const BN=bspec.length;
+  const cityMesh=new THREE.InstancedMesh(bGeo,bMat,BN); cityMesh.castShadow=true; cityMesh.receiveShadow=true;
+  const roofMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),M(0x3a4256,{ro:0.85,me:0.2}),BN); roofMesh.castShadow=true;
+  for(let i=0;i<BN;i++){ const s=bspec[i];
+    dmy.position.set(s.x,s.h/2,s.z); dmy.scale.set(s.w,s.h,s.d); dmy.rotation.set(0,0,0); dmy.updateMatrix(); cityMesh.setMatrixAt(i,dmy.matrix); cityMesh.setColorAt(i,new THREE.Color(s.col));
+    dmy.position.set(s.x,s.h+0.9,s.z); dmy.scale.set(Math.min(s.w*0.45,3),1.8,Math.min(s.d*0.45,3)); dmy.updateMatrix(); roofMesh.setMatrixAt(i,dmy.matrix);
+    const body=new CANNON.Body({mass:0,collisionFilterGroup:BUILDING,collisionFilterMask:ROBOT|BUILDING|GROUND,position:new CANNON.Vec3(s.x,s.h/2,s.z)}); body.addShape(new CANNON.Box(new CANNON.Vec3(s.w/2,s.h/2,s.d/2))); world.addBody(body);
+    const b={idx:i,body,alive:true,x:s.x,z:s.z,w:s.w,h:s.h,d:s.d}; body.addEventListener('collide',function(){ if(b.alive) destroyBuilding(b); }); buildings.push(b); }
+  cityMesh.instanceMatrix.needsUpdate=true; if(cityMesh.instanceColor) cityMesh.instanceColor.needsUpdate=true; roofMesh.instanceMatrix.needsUpdate=true; scene.add(cityMesh); scene.add(roofMesh);
+
+  // 네온 간판 (색상별 InstancedMesh)
+  (function(){ const NC=[0xff3b7b,0x39e6ff,0xffd23b,0x8affc1,0xff7a2f,0xb06bff]; const by=NC.map(()=>[]); bspec.forEach(s=>{ if(Math.random()<0.45) by[(Math.random()*NC.length)|0].push(s); });
+    by.forEach((list,ci)=>{ if(!list.length) return; const nm=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,0.3),M(NC[ci],{em:NC[ci],ei:2.4,ro:0.4}),list.length); const d=new THREE.Object3D();
+      list.forEach((s,i)=>{ const face=Math.random()<0.5, off=(face?s.d:s.w)/2+0.25, sgn=Math.random()<0.5?1:-1; d.position.set(s.x+(face?0:off*sgn), s.h*(0.4+Math.random()*0.32), s.z+(face?off*sgn:0)); d.rotation.set(0,face?0:Math.PI/2,0); d.scale.set((face?s.w:s.d)*0.5, s.h*0.26, 1); d.updateMatrix(); nm.setMatrixAt(i,d.matrix); }); nm.instanceMatrix.needsUpdate=true; scene.add(nm); }); })();
+
+  // === 거리 소품 ===
   const lightPos=[], treePos=[], carPos=[];
-  for(let k=-3;k<=3;k++){ for(let s=-3;s<=3;s++){ const rx=45*k, rz=45*s+22.5; if(Math.hypot(rx,rz)>150||Math.hypot(rx,rz)<40) continue; lightPos.push({x:rx+3.5,z:rz}); } }
-  for(let k=-3;k<=3;k++)for(let m=-3;m<=3;m++){ const cx=45*k+22.5, cz=45*m+22.5, r=Math.hypot(cx,cz); if(r<48||r>150) continue; if(Math.random()<0.5) treePos.push({x:cx+ (Math.random()*20-10), z:cz+(Math.random()*20-10)}); if(Math.random()<0.4) carPos.push({x:cx+16, z:cz+(Math.random()*20-10), ry:Math.random()*6.28}); }
-  // 가로등 (인스턴스): 기둥 + 발광 헤드
+  for(let k=-4;k<=4;k++)for(let s=-4;s<=4;s++){ const rx=45*k, rz=45*s+22.5, r=Math.hypot(rx,rz); if(r<ARENA-4||r>185) continue; lightPos.push({x:rx+4,z:rz}); lightPos.push({x:rx-4,z:rz-22}); }
+  for(let k=-4;k<=4;k++)for(let m=-4;m<=4;m++){ const cx=45*k+22.5, cz=45*m+22.5, r=Math.hypot(cx,cz); if(r<ARENA-6||r>180) continue; if(Math.random()<0.55) treePos.push({x:cx+(Math.random()*24-12), z:cz+(Math.random()*24-12)}); for(let c=0;c<2;c++) if(Math.random()<0.5) carPos.push({x:45*k+ (Math.random()<0.5?4:-4), z:cz+(Math.random()*30-15), ry:(Math.random()<0.5?0:Math.PI)}); }
   (function(){ if(!lightPos.length) return; const pole=new THREE.InstancedMesh(new THREE.BoxGeometry(0.3,8,0.3),M(0x3a4050,{me:0.4}),lightPos.length); const head=new THREE.InstancedMesh(new THREE.BoxGeometry(1.4,0.4,0.7),M(0xfff0c0,{em:0xffdf9a,ei:2.6}),lightPos.length); const d=new THREE.Object3D(); pole.castShadow=true;
     lightPos.forEach((p,i)=>{ d.position.set(p.x,4,p.z); d.rotation.set(0,0,0); d.updateMatrix(); pole.setMatrixAt(i,d.matrix); d.position.set(p.x,7.9,p.z-0.6); d.updateMatrix(); head.setMatrixAt(i,d.matrix); }); pole.instanceMatrix.needsUpdate=true; head.instanceMatrix.needsUpdate=true; scene.add(pole); scene.add(head); })();
-  // 가로수 (인스턴스): 기둥 + 잎
   (function(){ if(!treePos.length) return; const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.22,0.3,2.2,7),M(0x5a3d28,{ro:0.9,me:0}),treePos.length); const leaf=new THREE.InstancedMesh(new THREE.ConeGeometry(1.5,3.2,8),M(0x2f7a34,{ro:0.9,me:0}),treePos.length); const d=new THREE.Object3D(); trunk.castShadow=true; leaf.castShadow=true;
     treePos.forEach((p,i)=>{ d.position.set(p.x,1.1,p.z); d.updateMatrix(); trunk.setMatrixAt(i,d.matrix); d.position.set(p.x,3.4,p.z); d.updateMatrix(); leaf.setMatrixAt(i,d.matrix); }); trunk.instanceMatrix.needsUpdate=true; leaf.instanceMatrix.needsUpdate=true; scene.add(trunk); scene.add(leaf); })();
-  // 주차 차량 (개별, 색상 다양)
-  const carCols=[0xd23f3f,0x3f7bd2,0xe8b53f,0x46b06a,0xdedede,0x8a8f9a];
-  carPos.slice(0,16).forEach((p,i)=>{ const g=new THREE.Group(); const col=carCols[i%carCols.length]; B(g,1.6,0.55,3.4,col,0,0.45,0,{me:0.4}); B(g,1.5,0.5,1.7,col,0,0.9,-0.2,{me:0.4}); B(g,1.42,0.34,1.5,GLASS,0,0.92,-0.2,glassO); B(g,0.4,0.2,0.15,0xffe9a0,0.55,0.4,1.72,{em:0xffe9a0,ei:1.5}); B(g,0.4,0.2,0.15,0xffe9a0,-0.55,0.4,1.72,{em:0xffe9a0,ei:1.5}); g.traverse(m=>{if(m.isMesh)m.castShadow=true;}); g.position.set(p.x,0,p.z); g.rotation.y=p.ry; scene.add(g); });
-  function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; scene.remove(b.mesh); world.removeBody(b.body); const nx=2,ny=Math.max(2,Math.round(b.h/6)),nz=2,cw=b.w/nx,ch=b.h/ny,cd=b.d/nz;
+  // 주차 차량 (인스턴스, 색상 다양)
+  (function(){ const CN=carPos.length; if(!CN) return; const carCols=[0xd23f3f,0x3f7bd2,0xe8b53f,0x46b06a,0xdedede,0x8a8f9a];
+    const cbody=new THREE.InstancedMesh(new THREE.BoxGeometry(1.7,0.55,3.6),M(0xffffff,{me:0.4}),CN); const ccab=new THREE.InstancedMesh(new THREE.BoxGeometry(1.55,0.5,1.8),M(0xffffff,{me:0.4}),CN); const cglass=new THREE.InstancedMesh(new THREE.BoxGeometry(1.46,0.34,1.6),M(GLASS,glassO),CN); cbody.castShadow=true; ccab.castShadow=true; const d=new THREE.Object3D();
+    carPos.forEach((p,i)=>{ const col=new THREE.Color(carCols[i%carCols.length]); d.rotation.set(0,p.ry,0); d.scale.set(1,1,1); d.position.set(p.x,0.45,p.z); d.updateMatrix(); cbody.setMatrixAt(i,d.matrix); cbody.setColorAt(i,col); d.position.set(p.x,0.92,p.z); d.updateMatrix(); ccab.setMatrixAt(i,d.matrix); ccab.setColorAt(i,col); d.position.set(p.x,0.94,p.z); d.updateMatrix(); cglass.setMatrixAt(i,d.matrix); });
+    cbody.instanceMatrix.needsUpdate=true; ccab.instanceMatrix.needsUpdate=true; cglass.instanceMatrix.needsUpdate=true; if(cbody.instanceColor)cbody.instanceColor.needsUpdate=true; if(ccab.instanceColor)ccab.instanceColor.needsUpdate=true; scene.add(cbody); scene.add(ccab); scene.add(cglass); })();
+
+  function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; world.removeBody(b.body);
+    dmy.position.set(0,-9999,0); dmy.scale.set(0.001,0.001,0.001); dmy.rotation.set(0,0,0); dmy.updateMatrix(); cityMesh.setMatrixAt(b.idx,dmy.matrix); roofMesh.setMatrixAt(b.idx,dmy.matrix); cityMesh.instanceMatrix.needsUpdate=true; roofMesh.instanceMatrix.needsUpdate=true;
+    const nx=2,ny=Math.max(2,Math.round(b.h/7)),nz=2,cw=b.w/nx,ch=b.h/ny,cd=b.d/nz;
     for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){ const px=b.x+(ix+0.5-nx/2)*cw,py=(iy+0.5)*ch,pz=b.z+(iz+0.5-nz/2)*cd; const body=new CANNON.Body({mass:3,collisionFilterGroup:BUILDING,collisionFilterMask:GROUND|BUILDING|ROBOT,position:new CANNON.Vec3(px,py,pz),angularDamping:0.2}); body.addShape(new CANNON.Box(new CANNON.Vec3(cw/2,ch/2,cd/2))); body.velocity.set((Math.random()-0.5)*7,Math.random()*5,(Math.random()-0.5)*7); body.angularVelocity.set((Math.random()-0.5)*5,(Math.random()-0.5)*5,(Math.random()-0.5)*5); world.addBody(body); const mesh=new THREE.Mesh(bGeo,debMat); mesh.scale.set(cw,ch,cd); mesh.castShadow=true; scene.add(mesh); debris.push({body,mesh,life:7}); }
-    while(debris.length>200){ const d0=debris.shift(); scene.remove(d0.mesh); world.removeBody(d0.body); } }
+    while(debris.length>160){ const d0=debris.shift(); scene.remove(d0.mesh); world.removeBody(d0.body); } }
 
   function buildMonster(){ const g=new THREE.Group(); const skin=M(0x3a2850,{ro:0.7,me:0.1}); const glow=M(0x1c1030,{em:0xff3355,ei:2.0,ro:0.5}); const mk=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
     mk(new THREE.BoxGeometry(4,4.6,3),skin,0,4.6,0); mk(new THREE.SphereGeometry(1.15,18,18),glow,0,4.3,1.45); mk(new THREE.BoxGeometry(2.5,2.1,2.3),skin,0,7.9,0); const eye=M(0,{em:0xffee55,ei:3}); mk(new THREE.SphereGeometry(0.3,12,12),eye,-0.62,8.1,1.2); mk(new THREE.SphereGeometry(0.3,12,12),eye,0.62,8.1,1.2);
@@ -229,7 +246,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function startSeparate(){ if(state!=='combined') return; destroyRobot(); for(let i=0;i<planes.length;i++){ const p=planes[i]; p.g.position.copy(p.pt.slot); p.g.quaternion.copy(slotQuat); p.g.scale.setScalar(RS*0.55); p.g.visible=true; p.from.copy(p.pt.slot); p.fromQ.copy(slotQuat); p.fromS=RS*0.55; const hp=p.air?p.home.y:p.home.y; p.to.set(p.home.x,hp,p.home.z); p.toQ.setFromEuler(new THREE.Euler(0,p.heading,0)); p.toS=p.baseS; } cP=1; state='separating'; updateUI(); }
   function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
   ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);
-  window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx;
+  window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx; window.__info=()=>({calls:renderer.info.render.calls, tris:renderer.info.render.triangles, buildings:buildings.length});
 
   const down={};
   addEventListener('keydown', e=>{ let k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(k==='e'){ if(state==='human') boardNearest(); else if(state==='piloting') exitVehicle(); } if(k===' '){ e.preventDefault(); if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); } if(k.startsWith('arrow')) e.preventDefault(); });

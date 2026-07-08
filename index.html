@@ -57,6 +57,13 @@
 <div id="vignette" style="position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;box-shadow:inset 0 0 150px 45px rgba(200,10,10,.85);"></div>
 <div id="ammo" style="position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:8;display:none;font-weight:900;font-size:24px;color:#fff;text-shadow:0 2px 8px #000;">30<span style="font-size:13px;opacity:.65;font-weight:700;"> / 30</span></div>
 <button id="adsBtn" style="position:fixed;right:calc(96px + env(safe-area-inset-right));bottom:calc(156px + env(safe-area-inset-bottom));z-index:9;width:58px;height:58px;border-radius:50%;border:2px solid #9fd0ff;background:rgba(18,28,48,.72);color:#cfe0ff;font-size:12px;font-weight:800;">조준</button>
+<div id="score" style="position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:8;display:none;font-weight:900;font-size:14px;color:#fff;text-shadow:0 2px 6px #000;letter-spacing:1px;">킬 0 · 데스 0 · 목표 20</div>
+<div id="killfeed" style="position:fixed;right:12px;top:118px;z-index:8;display:none;text-align:right;font-size:13px;font-weight:800;line-height:1.55;"></div>
+<div id="dmgind" style="position:fixed;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;z-index:7;display:none;pointer-events:none;opacity:0;">
+  <div style="position:absolute;left:50%;top:2px;transform:translateX(-50%);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:26px solid rgba(235,45,45,.9);"></div>
+</div>
+<div id="ehp" style="position:fixed;z-index:8;display:none;width:56px;height:5px;background:rgba(0,0,0,.65);border:1px solid #500;border-radius:3px;overflow:hidden;pointer-events:none;"><div id="ehpFill" style="height:100%;width:100%;background:#e63b3b;"></div></div>
+<div id="deathmsg" style="position:fixed;inset:0;z-index:19;display:none;align-items:center;justify-content:center;background:rgba(50,0,0,.45);font-size:30px;font-weight:900;color:#ff8a8a;text-shadow:0 3px 14px #000;letter-spacing:3px;">전사 · 리스폰…</div>
 <div id="hpbars" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:none;width:min(520px,86vw);">
   <div style="display:flex;justify-content:space-between;font-size:11px;color:#cfe0ff;margin-bottom:2px;"><span>합체 로봇</span><span>괴수</span></div>
   <div style="display:flex;gap:10px;">
@@ -270,7 +277,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   const ammoEl=document.getElementById('ammo'), hitmarkEl=document.getElementById('hitmark'), vign=document.getElementById('vignette'), adsBtn=document.getElementById('adsBtn'), FOV0=52;
   function updateAmmo(){ ammoEl.innerHTML = (reloading>0?'재장전':ammo) + '<span style="font-size:13px;opacity:.65;font-weight:700;"> / '+MAG+'</span>'; }
   function reload(){ if(reloading>0||ammo>=MAG) return; reloading=1.5; snd('reload'); updateAmmo(); }
-  function hitmark(){ hitT=0.12; snd('hit'); }
+  function hitmark(head){ hitT=0.12; const c=head?'#ff4a4a':'#ffe14a'; if(hitmarkEl.children[0]){ hitmarkEl.children[0].style.background=c; hitmarkEl.children[1].style.background=c; } snd('hit'); }
   let actx=null; function audio(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(actx.state==='suspended') actx.resume(); return actx; }
   function snd(type){ const a=audio(); if(!a) return; const t=a.currentTime;
     if(type==='shot'){ const nb=a.createBuffer(1,1400,a.sampleRate), d=nb.getChannelData(0); for(let i=0;i<1400;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/1400,2.2); const ns=a.createBufferSource(); ns.buffer=nb; const nf=a.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value=2000; const ng=a.createGain(); ng.gain.setValueAtTime(0.45,t); ng.gain.exponentialRampToValueAtTime(0.001,t+0.13); ns.connect(nf); nf.connect(ng); ng.connect(a.destination); ns.start(t);
@@ -363,8 +370,8 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   const stEl=document.getElementById('st'), ctxBtn=document.getElementById('ctxBtn'), exitBtn=document.getElementById('exitBtn'), movePad=document.getElementById('movePad'), limbPad=document.getElementById('pad'), stagehint=document.getElementById('stagehint');
   function updateUI(){ const combined=(state==='combined'||state==='combining'); limbPad.style.display=combined?'flex':'none'; movePad.style.display=(state==='human'||state==='piloting')?'flex':'none'; exitBtn.style.display=(state==='piloting')?'block':'none';
     ctxBtn.style.display=(state==='separating')?'none':'block';
-    const fps=(state==='human'); crosshair.style.display=fps?'block':'none'; gunVM.visible=fps; human.visible=false; ammoEl.style.display=fps?'block':'none'; adsBtn.style.display=fps?'block':'none'; if(fps) updateAmmo(); if(!fps){ adsHeld=false; if(Math.abs(camera.fov-FOV0)>0.1){ camera.fov=FOV0; camera.updateProjectionMatrix(); } }
-    if(state==='human'){ ctxBtn.textContent='탑 승'; ctxBtn.disabled=(nearIdx<0); stEl.textContent='인간(FPS)'; stagehint.textContent='조준 드래그/우클릭 · F발사 · R재장전 · Shift질주'; }
+    const fps=(state==='human'); crosshair.style.display=fps?'block':'none'; gunVM.visible=fps; human.visible=false; ammoEl.style.display=fps?'block':'none'; adsBtn.style.display=fps?'block':'none'; scoreEl.style.display=fps?'block':'none'; feedEl.style.display=fps?'block':'none'; if(fps){ updateAmmo(); updateScore(); } if(!fps){ adsHeld=false; ehpEl.style.display='none'; dmgindEl.style.display='none'; deathEl.style.display='none'; if(Math.abs(camera.fov-FOV0)>0.1){ camera.fov=FOV0; camera.updateProjectionMatrix(); } }
+    if(state==='human'){ ctxBtn.textContent='탑 승'; ctxBtn.disabled=(nearIdx<0); stEl.textContent='PvP 데스매치'; stagehint.textContent='적 병사 처치 · 조준 드래그/우클릭 · F발사 · R재장전 · Shift질주'; }
     else if(state==='piloting'){ ctxBtn.textContent='합 체'; ctxBtn.disabled=false; stEl.textContent='탈것 조종'; stagehint.textContent='조종해서 합체'; }
     else if(combined){ ctxBtn.textContent='분 리'; ctxBtn.disabled=false; stagehint.textContent='합체 로봇'; } }
   function boardNearest(){ if(state!=='human'||nearIdx<0) return; playerIdx=nearIdx; state='piloting'; human.visible=false; updateUI(); }
@@ -377,7 +384,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function setHP(){ hpPlayerEl.style.width=Math.max(0,pHP)+'%'; hpRobot.style.width=Math.max(0,pHP)+'%'; hpMon.style.width=Math.max(0,mHP)+'%'; }
   function startCombat(){ mHP=100;pHP=100;mAlive=true;combatOn=true;combatOver=0;mAtkCD=1.6;armCD[0]=armCD[1]=0; hpbars.style.display='block'; setHP(); resultEl.style.display='none'; monster.rotation.x=0; }
   function endCombat(){ combatOn=false; hpbars.style.display='none'; }
-  function damagePlayer(n){ if(downT>0||combatOver) return; pHP-=n; if(pHP<0)pHP=0; setHP(); hurtFlash=0.7; sinceHit=0; shake=0.6; snd('hurt'); if(pHP<=0){ if(state==='combined'&&combatOn){ endGame(false); } else { downT=2.5; } } }
+  function damagePlayer(n,fx,fz){ if(downT>0||combatOver) return; pHP-=n; if(pHP<0)pHP=0; setHP(); hurtFlash=0.7; sinceHit=0; shake=0.6; snd('hurt'); if(fx!==undefined) showDmgDir(fx,fz); if(pHP<=0){ if(state==='combined'&&combatOn){ endGame(false); } else { downT=2.5; deaths++; updateScore(); deathEl.style.display='flex'; } } }
   function endGame(win){ combatOver=win?1:-1; combatOn=false; resultText.textContent=win?'승  리':'패  배'; resultText.style.color=win?'#7ef0a8':'#ff8088'; resultEl.style.display='flex'; }
   document.getElementById('resultBtn').addEventListener('click',()=>location.reload());
   function combatStep(dt){ if(!combatOn||!torso){ if(!combatOn){ monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1; } return; }
@@ -402,26 +409,49 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     if(state==='human'){ if(reloading>0) return; if(ammo<=0){ reload(); return; } fireCD=0.1; ammo--; updateAmmo(); recoilP+=0.03+Math.random()*0.012; recoilY+=(Math.random()-0.5)*0.016; gunKick+=0.09; muzzleT=0.05; shake=0.4; snd('shot');
       const spread=(ads>0.5?0.003:0.02); const ya=heading+recoilY+(Math.random()-0.5)*spread, ph=pitch+recoilP+(Math.random()-0.5)*spread, cd=Math.cos(ph); const dx=Math.sin(ya)*cd, dy=Math.sin(ph), dz=Math.cos(ya)*cd; spawnBullet(human.position.x+dx*0.6, human.position.y+0.46+dy*0.6, human.position.z+dz*0.6, dx*130, dy*130, dz*130, 0, 6, 1); if(ammo<=0) reload(); return; }
     fireCD=combined?0.16:0.11; const pp=playerPos(), d=aimDir(); const spd=(state==='piloting')?72:64, off=combined?4:3.2; spawnBullet(pp.x+d.x*off, pp.y+d.y*off, pp.z+d.z*off, d.x*spd, d.y*spd+1, d.z*spd, 0, combined?12:6, combined?4:1.8); }
-  const botCols=[0x3f7bff,0x37d67a,0xffd23b,0xb06bff,0xff7a2f,0x39e6ff,0xff5f9e];
-  const bots=[]; function makeBot(i){ const g=makePerson(botCols[i%botCols.length]); B(g,0.09,0.09,0.3,0x20242e,0.17,0.28,0.14,{me:0.3}); scene.add(g); const a=Math.random()*6.28,r=18+Math.random()*44; return {g,x:Math.cos(a)*r,z:Math.sin(a)*r,hp:18,alive:true,resp:0,fireCD:Math.random()*1.4,h:Math.random()*6.28}; }
-  for(let i=0;i<7;i++) bots.push(makeBot(i));
-  function killBot(bot){ bot.alive=false; bot.g.visible=false; bot.resp=3+Math.random()*2; kills++; killsEl.textContent=kills; }
-  function updateBots(dt){ const pp=playerPos(); for(const bot of bots){ if(!bot.alive){ bot.resp-=dt; if(bot.resp<=0){ const a=Math.random()*6.28,r=24+Math.random()*40; bot.x=Math.cos(a)*r; bot.z=Math.sin(a)*r; bot.hp=18; bot.alive=true; bot.g.visible=true; } continue; }
-      const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; if(L>18){ bot.x+=dx/L*4.2*dt; bot.z+=dz/L*4.2*dt; } else { bot.x+=(-dz/L)*3*dt; bot.z+=(dx/L)*3*dt; }
+  // === PvP 데스매치: 적 병사 봇 ===
+  const scoreEl=document.getElementById('score'), feedEl=document.getElementById('killfeed'), dmgindEl=document.getElementById('dmgind'), ehpEl=document.getElementById('ehp'), ehpFill=document.getElementById('ehpFill'), deathEl=document.getElementById('deathmsg');
+  let deaths=0; const FRAG=20; const botNames=['ALPHA','BRAVO','CHARLIE','DELTA','ECHO','FOX','GOLF','HOTEL','INDIA','JULIET'];
+  function updateScore(){ scoreEl.textContent='킬 '+kills+' · 데스 '+deaths+' · 목표 '+FRAG; }
+  const feedItems=[]; function addFeed(html){ const d=document.createElement('div'); d.innerHTML=html; d.style.transition='opacity .4s'; feedEl.appendChild(d); feedItems.push({el:d,t:4}); }
+  let dmgDirT=0, dmgDirAng=0; function showDmgDir(fx,fz){ dmgDirAng=Math.atan2(fx-human.position.x, fz-human.position.z)-heading; dmgDirT=1.0; }
+  const botCols=[0xd23f3f,0xe0574a,0xc23a5a,0xd2603a,0xb83a4a];
+  const spawnPt=()=>{ const a=Math.random()*6.28,r=24+Math.random()*55; return {x:Math.cos(a)*r,z:Math.sin(a)*r}; };
+  const bots=[];
+  function makeBot(i){ const g=makePerson(botCols[i%botCols.length]); B(g,0.09,0.09,0.34,0x15181f,0.17,0.3,0.16,{me:0.3}); const mz=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.14,6),M(0xffe08a,{em:0xffcf5a,ei:4})); mz.rotation.x=-Math.PI/2; mz.position.set(0.17,0.3,0.36); mz.visible=false; g.add(mz); scene.add(g); const s=spawnPt(); return {g,mz,body:g.children[0],x:s.x,z:s.z,hp:100,alive:true,resp:0,fireCD:1+Math.random(),burst:0,_shots:0,mzT:0,flash:0,h:Math.random()*6.28,strafe:Math.random()<0.5?1:-1,name:botNames[i%botNames.length]}; }
+  for(let i=0;i<8;i++) bots.push(makeBot(i));
+  function killBot(bot,byPlayer){ bot.alive=false; bot.g.visible=false; bot.resp=2.5+Math.random()*2; if(byPlayer){ kills++; killsEl.textContent=kills; addFeed('<span style="color:#7ef0a8">나</span> <span style="opacity:.55">▸</span> <span style="color:#ff8a8a">'+bot.name+'</span>'); updateScore(); if(kills>=FRAG) endGame(true); } }
+  function botShoot(bot,pp){ bot.mzT=0.05; snd('shot'); const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; const spr=0.05; const ax=dx/L+(Math.random()-0.5)*spr, az=dz/L+(Math.random()-0.5)*spr, aL=Math.hypot(ax,az)||1; spawnBullet(bot.x+ax/aL*0.7, 0.85, bot.z+az/aL*0.7, ax/aL*62, 3, az/aL*62, 1, 14, 1); }
+  let ehpBot=null, ehpT=0; const _pv=new THREE.Vector3();
+  function updateBots(dt){ const pp=playerPos();
+    for(const bot of bots){ if(!bot.alive){ bot.resp-=dt; if(bot.resp<=0){ const s=spawnPt(); bot.x=s.x; bot.z=s.z; bot.hp=100; bot.alive=true; bot.g.visible=true; } continue; }
+      const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; const low=bot.hp<35;
+      let mvx,mvz; if(low){ mvx=-dx/L; mvz=-dz/L; } else if(L>26){ mvx=dx/L; mvz=dz/L; } else { mvx=(-dz/L)*bot.strafe; mvz=(dx/L)*bot.strafe; if(Math.random()<0.012) bot.strafe*=-1; }
+      const spd=low?5:4; bot.x+=mvx*spd*dt; bot.z+=mvz*spd*dt; const rr=Math.hypot(bot.x,bot.z); if(rr>200){ bot.x*=200/rr; bot.z*=200/rr; }
       bot.g.position.set(bot.x, Math.abs(Math.sin(tG*7+bot.h))*0.05, bot.z); bot.g.rotation.y=Math.atan2(dx,dz);
-      bot.fireCD-=dt; if(bot.fireCD<=0 && L<48){ bot.fireCD=0.9+Math.random()*0.8; const ex=dx/L, ez=dz/L; spawnBullet(bot.x+ex*0.7,1.0,bot.z+ez*0.7, ex*42, 3.5, ez*42, 1, 5, 1); } } }
-  function updateBullets(dt){ for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vy-=3*dt; b.life-=dt; let hit=false;
-      if(b.team===0){ if(mAlive){ const dx=b.x-monster.position.x, dy=b.y-(monster.position.y+5), dz=b.z-monster.position.z; if(dx*dx+dy*dy+dz*dz<18){ hurtMonster(b.dmg); hit=true; } }
-        if(!hit) for(const bot of bots){ if(!bot.alive) continue; const dx=b.x-bot.x, dy=b.y-1, dz=b.z-bot.z; if(dx*dx+dy*dy+dz*dz<1.8){ bot.hp-=b.dmg; hit=true; if(bot.hp<=0) killBot(bot); break; } }
-        if(hit && state==='human') hitmark();
-      } else if(state!=='combined'){ const pp=playerPos(); const dx=b.x-pp.x, dy=b.y-pp.y, dz=b.z-pp.z; if(dx*dx+dy*dy+dz*dz<1.7){ damagePlayer(b.dmg); hit=true; } }
+      if(bot.flash>0){ bot.flash-=dt; bot.body.material.emissive.setHex(0xff3030); bot.body.material.emissiveIntensity=Math.max(0,bot.flash)*7; } else bot.body.material.emissiveIntensity=0;
+      if(bot.mzT>0) bot.mzT-=dt; bot.mz.visible=bot.mzT>0;
+      if(state==='human'){ if(bot.burst>0){ bot.burst-=dt; if(bot.burst<=0 && bot._shots>0){ botShoot(bot,pp); bot._shots--; bot.burst=0.13; } }
+        bot.fireCD-=dt; if(bot.fireCD<=0 && L<55){ bot.fireCD=1.3+Math.random()*1.2; bot._shots=2+((Math.random()*2)|0); bot.burst=0.01; } }
+    }
+    if(ehpT>0 && ehpBot && ehpBot.alive){ ehpT-=dt; _pv.set(ehpBot.x,0.72,ehpBot.z); _pv.project(camera); if(_pv.z<1){ ehpEl.style.display='block'; ehpEl.style.left=((_pv.x*0.5+0.5)*innerWidth-28)+'px'; ehpEl.style.top=((-_pv.y*0.5+0.5)*innerHeight-30)+'px'; ehpFill.style.width=Math.max(0,ehpBot.hp)+'%'; } else ehpEl.style.display='none'; } else ehpEl.style.display='none';
+    for(let i=feedItems.length-1;i>=0;i--){ const f=feedItems[i]; f.t-=dt; if(f.t<0.4) f.el.style.opacity='0'; if(f.t<=0){ f.el.remove(); feedItems.splice(i,1); } }
+    if(dmgDirT>0){ dmgDirT-=dt*1.2; dmgindEl.style.display='block'; dmgindEl.style.opacity=Math.max(0,dmgDirT); dmgindEl.style.transform='rotate('+dmgDirAng+'rad)'; } else dmgindEl.style.display='none';
+  }
+  function segD2(ax,ay,az,bx,by,bz,cx,cy,cz){ const dx=bx-ax,dy=by-ay,dz=bz-az; const l2=dx*dx+dy*dy+dz*dz||1e-6; let t=((cx-ax)*dx+(cy-ay)*dy+(cz-az)*dz)/l2; t=t<0?0:t>1?1:t; const ex=cx-(ax+dx*t),ey=cy-(ay+dy*t),ez=cz-(az+dz*t); return ex*ex+ey*ey+ez*ez; }
+  function updateBullets(dt){ for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; const ax=b.x,ay=b.y,az=b.z; b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vy-=3*dt; b.life-=dt; let hit=false;
+      if(b.team===0){ if(mAlive && segD2(ax,ay,az,b.x,b.y,b.z, monster.position.x,monster.position.y+5,monster.position.z)<18){ hurtMonster(b.dmg); if(state==='human') hitmark(false); hit=true; }
+        if(!hit) for(const bot of bots){ if(!bot.alive) continue;
+          if(segD2(ax,ay,az,b.x,b.y,b.z, bot.x,0.5,bot.z)<0.12){ bot.hp-=55; bot.flash=0.14; ehpBot=bot; ehpT=1.6; if(state==='human') hitmark(true); if(bot.hp<=0) killBot(bot,true); hit=true; break; }
+          if(segD2(ax,ay,az,b.x,b.y,b.z, bot.x,0.28,bot.z)<0.34){ bot.hp-=26; bot.flash=0.14; ehpBot=bot; ehpT=1.6; if(state==='human') hitmark(false); if(bot.hp<=0) killBot(bot,true); hit=true; break; } }
+      } else if(state!=='combined'){ const pp=playerPos(); if(segD2(ax,ay,az,b.x,b.y,b.z, pp.x,pp.y,pp.z)<1.7){ damagePlayer(b.dmg, b.x-b.vx*0.05, b.z-b.vz*0.05); hit=true; } }
       if(hit||b.life<=0||b.y<0.15){ bullets.splice(i,1); } }
     let ci=0,ei=0; for(const b of bullets){ _bd.position.set(b.x,b.y,b.z); _bd.scale.set(b.r,b.r,b.r); _bd.updateMatrix(); if(b.team===0){ if(ci<BHALF) imP.setMatrixAt(ci++,_bd.matrix); } else { if(ei<BHALF) imE.setMatrixAt(ei++,_bd.matrix); } }
     _bd.scale.set(0,0,0); _bd.updateMatrix(); for(let k=ci;k<BHALF;k++) imP.setMatrixAt(k,_bd.matrix); for(let k=ei;k<BHALF;k++) imE.setMatrixAt(k,_bd.matrix); imP.instanceMatrix.needsUpdate=true; imE.instanceMatrix.needsUpdate=true; }
   function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
   ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);
   window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx; window.__info=()=>({calls:renderer.info.render.calls, tris:renderer.info.render.triangles, buildings:buildings.length});
-  window.__hp=()=>({pHP,mHP,kills,combatOn,combatOver,state,bullets:bullets.length}); window.__torso=()=>torso?{x:torso.position.x,y:torso.position.y,z:torso.position.z}:null; window.__hurtMon=(n)=>hurtMonster(n); window.__fire=()=>{fireCD=0;fire();}; window.__setlook=(y,p)=>{heading=y;pitch=p;}; window.__cam=()=>({x:camera.position.x,y:camera.position.y,z:camera.position.z}); window.__lastb=()=>bullets.length?bullets[bullets.length-1]:null; window.__fps=()=>({ammo,reloading,ads:+ads.toFixed(2),fov:+camera.fov.toFixed(1),recoilP:+recoilP.toFixed(3)}); window.__ads=(b)=>setADS(b); window.__reload=()=>reload();
+  window.__hp=()=>({pHP,mHP,kills,combatOn,combatOver,state,bullets:bullets.length}); window.__torso=()=>torso?{x:torso.position.x,y:torso.position.y,z:torso.position.z}:null; window.__hurtMon=(n)=>hurtMonster(n); window.__fire=()=>{fireCD=0;fire();}; window.__setlook=(y,p)=>{heading=y;pitch=p;}; window.__cam=()=>({x:camera.position.x,y:camera.position.y,z:camera.position.z}); window.__lastb=()=>bullets.length?bullets[bullets.length-1]:null; window.__fps=()=>({ammo,reloading,ads:+ads.toFixed(2),fov:+camera.fov.toFixed(1),recoilP:+recoilP.toFixed(3)}); window.__ads=(b)=>setADS(b); window.__reload=()=>reload(); window.__dm=()=>({kills,deaths,pHP:Math.round(pHP),aliveBots:bots.filter(b=>b.alive).length,minBotHP:Math.min.apply(0,bots.map(b=>b.hp))}); window.__botfront=()=>{ const b=bots.find(x=>x.alive)||bots[0]; b.alive=true; b.g.visible=true; b.hp=100; const cd=Math.cos(pitch); b.x=human.position.x+Math.sin(heading)*4; b.z=human.position.z+Math.cos(heading)*4; return b.name; };
 
   const down={};
   addEventListener('keydown', e=>{ let k=e.key.toLowerCase(); down[k]=true; if(k==='r'){ if(state==='human') reload(); else resetRobot(); } if(k==='e'){ if(state==='human') boardNearest(); else if(state==='piloting') exitVehicle(); } if(k===' '){ e.preventDefault(); if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); } if(k.startsWith('arrow')) e.preventDefault(); });
@@ -443,7 +473,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     // 스핀(로터/드릴)
     if(state!=='combined'){ for(const p of planes){ if(!p.g.visible) continue; const sp=p.g.userData.spin; if(sp) for(const s of sp) s.m.rotation[s.ax]+=s.sp*dt; } }
     // 총격전(모든 단계)
-    if(fireCD>0) fireCD-=dt; if(fireHeld||down['f']) fire(); updateBots(dt); updateBullets(dt); updateFPS(dt); if(downT>0){ downT-=dt; if(downT<=0){ pHP=100; setHP(); if(state==='human') human.position.set(0,0,24); } }
+    if(fireCD>0) fireCD-=dt; if(fireHeld||down['f']) fire(); updateBots(dt); updateBullets(dt); updateFPS(dt); if(downT>0){ downT-=dt; if(downT<=0){ pHP=100; setHP(); deathEl.style.display='none'; if(state==='human'){ const sp=spawnPt(); human.position.set(sp.x,0,sp.z); } } }
 
     if(state==='human'){
       const f=(down['arrowup']||down['w']?1:0)-(down['arrowdown']||down['s']?1:0); const s=(down['arrowright']||down['d']?1:0)-(down['arrowleft']||down['a']?1:0);

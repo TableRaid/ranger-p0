@@ -1,55 +1,82 @@
 <style>
-  :root { --panel: rgba(10,14,24,0.85); --line:#243352; }
-  html, body { margin:0; height:100%; overflow:hidden; background:#0a0e18; font-family:system-ui,sans-serif; color:#e8ecf4; }
+  :root { --panel: rgba(16,19,26,0.85); --line:#2a3550; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#10131a; font-family:system-ui,sans-serif; color:#e8ecf4; }
   #app { position:fixed; inset:0; }
   .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.5; backdrop-filter:blur(4px); z-index:5; }
-  #title { left:10px; top:10px; max-width:260px; }
-  #title h1 { font-size:13px; margin:0 0 4px; letter-spacing:.3px; }
-  #title .sub { color:#9fb3e0; font-size:11px; }
-  #title .row { margin-top:6px; }
-  #title .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
-  #title .k { display:inline-block; min-width:18px; padding:1px 5px; margin:0 2px 2px 0; background:#1d2740; border:1px solid #38466a; border-radius:5px; text-align:center; font-weight:600; }
-  #status { left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); font-size:12px; }
+  #legend { left:10px; top:10px; max-width:240px; }
+  #legend h1 { font-size:12px; margin:0 0 6px; }
+  #legend .k { display:inline-block; min-width:18px; padding:1px 5px; margin:0 2px 2px 0; background:#1d2740; border:1px solid #38466a; border-radius:5px; text-align:center; font-weight:600; }
+  #legend .row { margin-bottom:4px; }
+  #legend .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  #tune { right:10px; top:10px; width:210px; }
+  #tune h2 { font-size:11px; margin:0 0 6px; color:#9fb3e0; }
+  #tune label { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px; }
+  #tune label span:last-child { color:#7fe0b0; font-variant-numeric:tabular-nums; min-width:34px; text-align:right; }
+  #tune input[type=range] { flex:1; min-width:0; }
+  #status { left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); font-size:13px; }
   #status b { color:#ffce54; }
+  .hint { color:#8b97b0; font-size:11px; margin-top:6px; }
+  /* 터치 조작 패드 */
   #pad { position:fixed; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:6; display:flex; gap:8px; align-items:flex-end; }
-  #pad .cluster { display:grid; gap:5px; justify-items:center; }
+  #pad .cluster { display:grid; grid-auto-flow:row; gap:5px; justify-items:center; }
   #pad .cluster.mid { align-self:center; }
   #pad .lbl { font-size:10px; color:#9fb3e0; }
-  #pad button { width:50px; height:38px; border-radius:9px; border:1px solid #38466a; background:#1b2438; color:#e8ecf4; font-size:15px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #pad button { width:52px; height:40px; border-radius:9px; border:1px solid #38466a; background:#1b2438; color:#e8ecf4; font-size:15px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
   #pad button:active { background:#2a3a5c; }
-  #pad #btnReset { width:66px; height:32px; font-size:12px; }
-  #camBtn { position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#9fb3e0; border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
-  @media (max-width:760px){ #title{max-width:170px;font-size:11px;} }
+  #pad #btnReset { width:70px; height:34px; font-size:12px; }
+  #hidePad { position:fixed; right:10px; bottom:calc(58px + env(safe-area-inset-bottom)); z-index:7; font-size:11px; background:var(--panel); color:#9fb3e0; border:1px solid var(--line); border-radius:6px; padding:3px 8px; }
+  @media (max-width:760px) {
+    #legend { max-width:180px; font-size:11px; }
+    #tune { display:none; }
+    #tuneToggle { display:block; }
+  }
+  #tuneToggle { display:none; position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#9fb3e0; border:1px solid var(--line); border-radius:6px; padding:4px 9px; }
 </style>
 
 <div id="app"></div>
 
-<div id="title" class="panel">
-  <h1>레인저 서바이벌 — 스케일 구성</h1>
-  <div class="sub">도시 · 괴물 · 거대로봇 · 사람 한 화면 배치</div>
-  <div class="row"><span class="dot" style="background:#ffd24a"></span>거대로봇 (조종 가능)</div>
-  <div class="row"><span class="dot" style="background:#ff3355"></span>괴물 (괴수 스케일)</div>
-  <div class="row"><span class="dot" style="background:#3b7bff"></span>레인저·사람 (소형)</div>
-  <div class="row" style="margin-top:6px;color:#8b97b0;font-size:11px;">
-    다리 <span class="k">A</span><span class="k">Z</span> <span class="k">L</span><span class="k">.</span> · 팔 <span class="k">Q</span><span class="k">W</span> <span class="k">O</span><span class="k">P</span> · <span class="k">R</span> 세우기<br>모바일은 오른쪽 아래 버튼
-  </div>
+<div id="legend" class="panel">
+  <h1>P0 — 관절 물리 로봇</h1>
+  <div class="row"><span class="dot" style="background:#ffd24a"></span><b>몸통</b> 사자·코어(자동)</div>
+  <div class="row"><span class="dot" style="background:#7ec8ff"></span><b>머리</b> 독수리 <span class="k">&larr;</span><span class="k">&rarr;</span></div>
+  <div class="row"><span class="dot" style="background:#8affc1"></span><b>왼팔</b> 비행기 <span class="k">Q</span><span class="k">W</span></div>
+  <div class="row"><span class="dot" style="background:#ff9d5c"></span><b>오른팔</b> 호랑이 <span class="k">O</span><span class="k">P</span></div>
+  <div class="row"><span class="dot" style="background:#c9a0ff"></span><b>왼다리</b> 코끼리 <span class="k">A</span><span class="k">Z</span></div>
+  <div class="row"><span class="dot" style="background:#ff7fa8"></span><b>오른다리</b> 코끼리 <span class="k">L</span><span class="k">.</span></div>
+  <div class="hint">다리 번갈아 스윙=전진. 안 맞으면 자빠짐.<br>모바일은 오른쪽 아래 버튼으로 조작.</div>
 </div>
 
-<button id="camBtn">시점: 전경</button>
-<div id="status" class="panel">로봇: <b id="st">로딩중…</b> · 전진 <b id="dist">0.0</b> m</div>
+<button id="tuneToggle">튜닝 열기</button>
+<div id="tune" class="panel">
+  <h2>물리 튜닝</h2>
+  <label>중력 <input id="s_grav" type="range" min="4" max="20" step="0.5" value="9.8"><span id="v_grav"></span></label>
+  <label>팔다리 힘 <input id="s_power" type="range" min="5" max="120" step="1" value="45"><span id="v_power"></span></label>
+  <label>스윙 속도 <input id="s_speed" type="range" min="1" max="14" step="0.5" value="6"><span id="v_speed"></span></label>
+  <label>균형 보조 <input id="s_bal" type="range" min="0" max="18" step="0.5" value="4"><span id="v_bal"></span></label>
+  <label>발 마찰 <input id="s_fric" type="range" min="0.2" max="3" step="0.1" value="1.4"><span id="v_fric"></span></label>
+  <div class="hint">균형 보조 0=순수 래그돌. 그 사이 어딘가가 정답.</div>
+</div>
 
+<div id="status" class="panel">상태: <b id="st">로딩중…</b> · 넘어짐: <b id="falls">0</b> · 전진: <b id="dist">0.0</b> m</div>
+
+<button id="hidePad">패드 숨기기</button>
 <div id="pad">
   <div class="cluster">
-    <div class="lbl">왼팔</div><button data-key="q">&#9650;</button><button data-key="w">&#9660;</button>
-    <div class="lbl">왼다리</div><button data-key="a">&#9650;</button><button data-key="z">&#9660;</button>
+    <div class="lbl">왼팔 Q/W</div>
+    <button data-key="q">&#9650;</button><button data-key="w">&#9660;</button>
+    <div class="lbl">왼다리 A/Z</div>
+    <button data-key="a">&#9650;</button><button data-key="z">&#9660;</button>
   </div>
   <div class="cluster mid">
-    <button data-key="arrowleft">&#9664;</button><button data-key="arrowright">&#9654;</button>
+    <button data-key="arrowleft">머리&#9664;</button>
+    <button data-key="arrowright">머리&#9654;</button>
     <button id="btnReset">R 세우기</button>
   </div>
   <div class="cluster">
-    <div class="lbl">오른팔</div><button data-key="o">&#9650;</button><button data-key="p">&#9660;</button>
-    <div class="lbl">오른다리</div><button data-key="l">&#9650;</button><button data-key=".">&#9660;</button>
+    <div class="lbl">오른팔 O/P</div>
+    <button data-key="o">&#9650;</button><button data-key="p">&#9660;</button>
+    <div class="lbl">오른다리 L/.</div>
+    <button data-key="l">&#9650;</button><button data-key=".">&#9660;</button>
   </div>
 </div>
 
@@ -90,213 +117,113 @@ x.length=w,j.length=w,v.length=w;for(var g=0;g!==w;g++){var A=r[g];v[g]=0,j[g]=A
 T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sleepState===c.SLEEPING&&x.sleepState===c.AWAKE&&x.type!==c.STATIC){var V=x.velocity.norm2()+x.angularVelocity.norm2(),W=Math.pow(x.sleepSpeedLimit,2);V>=2*W&&(R._wakeUpAfterNarrowphase=!0)}this.collisionMatrix.set(x,R,!0),this.collisionMatrixPrevious.get(x,R)||(A.body=R,A.contact=H,x.dispatchEvent(A),A.body=x,R.dispatchEvent(A))}for(s&&(y.makeContactConstraints=performance.now()-f,f=performance.now()),g=0;g!==t;g++){var x=l[g];x._wakeUpAfterNarrowphase&&(x.wakeUp(),x._wakeUpAfterNarrowphase=!1)}var G=r.length;for(g=0;g!==G;g++){var H=r[g];H.update();for(var I=0,X=H.equations.length;I!==X;I++){var Y=H.equations[I];u.addEquation(Y)}}u.solve(e,this),s&&(y.solve=performance.now()-f),u.removeAllEquations();var Z=Math.pow;for(g=0;g!==t;g++){var x=l[g];if(x.type&a){var $=Z(1-x.linearDamping,e),_=x.velocity;_.mult($,_);var ef=x.angularVelocity;if(ef){var ff=Z(1-x.angularDamping,e);ef.mult(ff,ef)}}}for(this.dispatchEvent(v),g=0;g!==t;g++){var x=l[g];x.preStep&&x.preStep.call(x)}s&&(f=performance.now());{var nf=q,of=z,df=this.stepnumber,tf=c.DYNAMIC|c.KINEMATIC,lf=df%(this.quatNormalizeSkip+1)===0,uf=this.quatNormalizeFast,pf=.5*e;o.types.PLANE,o.types.CONVEXPOLYHEDRON}for(g=0;g!==t;g++){var sf=l[g],yf=sf.force,cf=sf.torque;if(sf.type&tf&&sf.sleepState!==c.SLEEPING){var af=sf.velocity,rf=sf.angularVelocity,wf=sf.position,bf=sf.quaternion,mf=sf.invMass,Nf=sf.invInertiaWorld;af.x+=yf.x*mf*e,af.y+=yf.y*mf*e,af.z+=yf.z*mf*e,sf.angularVelocity&&(Nf.vmult(cf,B),B.mult(e,B),B.vadd(rf,rf)),wf.x+=af.x*e,wf.y+=af.y*e,wf.z+=af.z*e,sf.angularVelocity&&(nf.set(rf.x,rf.y,rf.z,0),nf.mult(bf,of),bf.x+=pf*of.x,bf.y+=pf*of.y,bf.z+=pf*of.z,bf.w+=pf*of.w,lf&&(uf?bf.normalizeFast():bf.normalize())),sf.aabb&&(sf.aabbNeedsUpdate=!0),sf.updateInertiaWorld&&sf.updateInertiaWorld()}}for(this.clearForces(),this.broadphase.dirty=!0,s&&(y.integrate=performance.now()-f),this.time+=e,this.stepnumber+=1,this.dispatchEvent(j),g=0;g!==t;g++){var x=l[g],gf=x.postStep;gf&&gf.call(x)}if(this.allowSleep)for(g=0;g!==t;g++)l[g].sleepTick(this.time)},n.prototype.clearForces=function(){for(var e=this.bodies,f=e.length,n=0;n!==f;n++){{var o=e[n];o.force,o.torque}o.force.set(0,0,0),o.torque.set(0,0,0)}}},{"../collision/AABB":3,"../collision/ArrayCollisionMatrix":4,"../collision/NaiveBroadphase":7,"../collision/Ray":9,"../collision/RaycastResult":10,"../equations/ContactEquation":19,"../equations/FrictionEquation":21,"../material/ContactMaterial":24,"../material/Material":25,"../math/Quaternion":28,"../math/Vec3":30,"../objects/Body":31,"../shapes/Shape":43,"../solver/GSSolver":46,"../utils/EventTarget":49,"../utils/TupleDictionary":52,"../utils/Vec3Pool":54,"./Narrowphase":55}]},{},[2])(2)});</script>
 <script>
 (function () {
-  if (!window.THREE || !window.CANNON) { document.getElementById('st').textContent='라이브러리 로드 실패'; return; }
-  const P = { gravity:9.8, power:45, speed:6, balance:5, footFriction:1.4 };
+  if (!window.THREE || !window.CANNON) { document.getElementById('st').textContent = '라이브러리 로드 실패'; return; }
+
+  const P = { gravity:9.8, power:45, speed:6, balance:4, footFriction:1.4 };
+  function bind(id, vid, key, fmt){ const s=document.getElementById(id), v=document.getElementById(vid);
+    const upd=()=>{ P[key]=parseFloat(s.value); v.textContent=fmt?fmt(P[key]):P[key]; }; s.addEventListener('input',upd); upd(); }
+  bind('s_grav','v_grav','gravity'); bind('s_power','v_power','power'); bind('s_speed','v_speed','speed');
+  bind('s_bal','v_bal','balance'); bind('s_fric','v_fric','footFriction', x=>x.toFixed(1));
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0e18);
-  scene.fog = new THREE.Fog(0x0a0e18, 55, 230);
-  const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 600);
+  scene.background = new THREE.Color(0x10131a);
+  scene.fog = new THREE.Fog(0x10131a, 30, 70);
+  const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 200);
   const renderer = new THREE.WebGLRenderer({ antialias:true });
   renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true;
   document.getElementById('app').appendChild(renderer.domElement);
   addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 
-  // --- 야간 도시 조명 ---
-  scene.add(new THREE.HemisphereLight(0x2a3a66, 0x05060a, 0.55));
-  const moon = new THREE.DirectionalLight(0xbcd0ff, 0.8);
-  moon.position.set(20, 40, 12); moon.castShadow = true;
-  moon.shadow.mapSize.set(2048,2048);
-  const S=40; moon.shadow.camera.left=-S; moon.shadow.camera.right=S; moon.shadow.camera.top=S; moon.shadow.camera.bottom=-S;
-  moon.shadow.camera.far=140; moon.shadow.bias=-0.0004;
-  scene.add(moon);
-  const rim = new THREE.DirectionalLight(0xff4a6a, 0.25); rim.position.set(-10,8,-25); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0x9fb8ff, 0x20242e, 0.9));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(8,18,6); sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-20; sun.shadow.camera.right=20; sun.shadow.camera.top=20; sun.shadow.camera.bottom=-20;
+  scene.add(sun);
+  scene.add(new THREE.GridHelper(200,100,0x2a3550,0x1b2438));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200,200), new THREE.MeshStandardMaterial({ color:0x161b26, roughness:1 }));
+  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
 
-  // --- 바닥 (도시 지면) ---
-  const ground3 = new THREE.Mesh(new THREE.PlaneGeometry(600,600), new THREE.MeshStandardMaterial({ color:0x0d1220, roughness:1 }));
-  ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
-  const grid = new THREE.GridHelper(600, 150, 0x1c2b48, 0x121a2e); grid.position.y=0.02; scene.add(grid);
-
-  // --- 도시 빌딩 (InstancedMesh: 창문 발광) ---
-  function makeWindowTexture(){
-    const c=document.createElement('canvas'); c.width=64; c.height=128; const g=c.getContext('2d');
-    g.fillStyle='#070a12'; g.fillRect(0,0,64,128);
-    for(let y=5;y<128;y+=11) for(let x=5;x<64;x+=13){
-      const lit=Math.random()<0.45;
-      g.fillStyle = lit ? (Math.random()<0.5?'#ffd27f':'#8fc4ff') : '#0e1524';
-      g.fillRect(x,y,8,7);
-    }
-    const t=new THREE.CanvasTexture(c); return t;
-  }
-  const winTex = makeWindowTexture();
-  const bGeo = new THREE.BoxGeometry(1,1,1);
-  const bMat = new THREE.MeshStandardMaterial({ color:0x141b2c, roughness:0.92, metalness:0.0, emissive:0xffffff, emissiveMap:winTex, emissiveIntensity:0.55 });
-  const CITY=90;
-  const buildings = new THREE.InstancedMesh(bGeo, bMat, CITY);
-  buildings.castShadow=true; buildings.receiveShadow=true;
-  const d3=new THREE.Object3D();
-  for(let i=0;i<CITY;i++){
-    const ang=Math.random()*Math.PI*2, rad=26+Math.random()*120;
-    const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad;
-    const h=8+Math.random()*34, w=4+Math.random()*5, dd=4+Math.random()*5;
-    d3.position.set(x,h/2,z); d3.scale.set(w,h,dd); d3.rotation.y=Math.random()*Math.PI; d3.updateMatrix();
-    buildings.setMatrixAt(i,d3.matrix);
-  }
-  buildings.instanceMatrix.needsUpdate=true; scene.add(buildings);
-
-  // --- 괴물 (괴수 스케일 ~9m) ---
-  function buildMonster(){
-    const g=new THREE.Group();
-    const skin=new THREE.MeshStandardMaterial({color:0x2b1e3a, roughness:0.75, metalness:0.08});
-    const glow=new THREE.MeshStandardMaterial({color:0x180f22, emissive:0xff3355, emissiveIntensity:1.8, roughness:0.5});
-    const body=new THREE.Mesh(new THREE.BoxGeometry(4,4.6,3), skin); body.position.y=4.6; g.add(body);
-    const belly=new THREE.Mesh(new THREE.SphereGeometry(1.15,18,18), glow); belly.position.set(0,4.3,1.45); g.add(belly);
-    const head=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.1,2.3), skin); head.position.y=7.9; g.add(head);
-    const eyeMat=new THREE.MeshStandardMaterial({color:0x000000, emissive:0xffee55, emissiveIntensity:3});
-    const eyeGeo=new THREE.SphereGeometry(0.3,12,12);
-    const eL=new THREE.Mesh(eyeGeo,eyeMat); eL.position.set(-0.62,8.1,1.2); g.add(eL);
-    const eR=eL.clone(); eR.position.x=0.62; g.add(eR);
-    const hornGeo=new THREE.ConeGeometry(0.38,1.6,8);
-    const h1=new THREE.Mesh(hornGeo,skin); h1.position.set(-0.85,9.4,0); h1.rotation.z=0.35; g.add(h1);
-    const h2=h1.clone(); h2.position.x=0.85; h2.rotation.z=-0.35; g.add(h2);
-    const armGeo=new THREE.BoxGeometry(1.2,3.6,1.2);
-    const aL=new THREE.Mesh(armGeo,skin); aL.position.set(-2.95,4.7,0); aL.rotation.z=0.28; g.add(aL);
-    const aR=new THREE.Mesh(armGeo,skin); aR.position.set(2.95,4.7,0); aR.rotation.z=-0.28; g.add(aR);
-    const legGeo=new THREE.BoxGeometry(1.5,3.1,1.5);
-    const lL=new THREE.Mesh(legGeo,skin); lL.position.set(-1.15,1.55,0); g.add(lL);
-    const lR=new THREE.Mesh(legGeo,skin); lR.position.set(1.15,1.55,0); g.add(lR);
-    g.traverse(m=>{ if(m.isMesh) m.castShadow=true; });
-    g.position.set(0,0,-24); scene.add(g); return g;
-  }
-  const monster = buildMonster();
-
-  // --- 작은 사람들 (레인저 5색 + 시민) ---
-  const RANGER=[0xff3b3b,0x3b7bff,0xffd23b,0x3bd47a,0xff7fc4];
-  function makePerson(color){
-    const g=new THREE.Group();
-    const body=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.3,0.11), new THREE.MeshStandardMaterial({color, roughness:0.6}));
-    body.position.y=0.25; g.add(body);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,10), new THREE.MeshStandardMaterial({color:0xf0c9a0}));
-    head.position.y=0.46; g.add(head);
-    g.traverse(m=>{ if(m.isMesh) m.castShadow=true; });
-    return g;
-  }
-  const people=[];
-  // 레인저 5인: 로봇 발치 근처 클러스터
-  for(let i=0;i<5;i++){
-    const p=makePerson(RANGER[i]);
-    const x=(-1.6+i*0.8)+ (Math.random()*0.4-0.2), z=3.2+Math.random()*1.2;
-    p.position.set(x,0,z); scene.add(p);
-    people.push({ g:p, phase:Math.random()*6.28, flee:false });
-  }
-  // 시민 20인: 흩어져 도망
-  for(let i=0;i<20;i++){
-    const p=makePerson(0xaeb7c9);
-    const ang=Math.random()*Math.PI*2, rad=4+Math.random()*10;
-    p.position.set(Math.cos(ang)*rad, 0, 6+Math.sin(ang)*rad*0.5);
-    scene.add(p); people.push({ g:p, phase:Math.random()*6.28, flee:true });
-  }
-
-  // --- 물리: 로봇 ---
   const world = new CANNON.World(); world.gravity.set(0,-P.gravity,0);
-  world.broadphase = new CANNON.SAPBroadphase(world); world.solver.iterations=20;
-  world.defaultContactMaterial.contactEquationStiffness=1e7;
+  world.broadphase = new CANNON.SAPBroadphase(world); world.solver.iterations = 20;
+  world.defaultContactMaterial.contactEquationStiffness = 1e7;
   const GROUND=1, ROBOT=2;
-  const matGround=new CANNON.Material('g'), matFoot=new CANNON.Material('f');
-  const gb=new CANNON.Body({ mass:0, material:matGround, collisionFilterGroup:GROUND, collisionFilterMask:ROBOT });
-  gb.addShape(new CANNON.Plane()); gb.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2); world.addBody(gb);
-  world.addContactMaterial(new CANNON.ContactMaterial(matGround, matFoot, { friction:P.footFriction, restitution:0 }));
+  const matGround = new CANNON.Material('ground'), matFoot = new CANNON.Material('foot');
+  const ground = new CANNON.Body({ mass:0, material:matGround, collisionFilterGroup:GROUND, collisionFilterMask:ROBOT });
+  ground.addShape(new CANNON.Plane()); ground.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2); world.addBody(ground);
+  world.addContactMaterial(new CANNON.ContactMaterial(matGround, matFoot, { friction:P.footFriction, restitution:0.0 }));
 
-  const meshes=[];
+  const meshes = [];
   function makePart(hx,hy,hz,mass,color,pos){
-    const body=new CANNON.Body({ mass, material:matFoot, position:new CANNON.Vec3(pos.x,pos.y,pos.z),
+    const body = new CANNON.Body({ mass, material:matFoot, position:new CANNON.Vec3(pos.x,pos.y,pos.z),
       collisionFilterGroup:ROBOT, collisionFilterMask:GROUND, linearDamping:0.02, angularDamping:0.06 });
     body.addShape(new CANNON.Box(new CANNON.Vec3(hx,hy,hz))); world.addBody(body);
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(hx*2,hy*2,hz*2), new THREE.MeshStandardMaterial({color, roughness:0.55, metalness:0.25 }));
-    mesh.castShadow=true; scene.add(mesh); meshes.push({body,mesh}); return body;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(hx*2,hy*2,hz*2), new THREE.MeshStandardMaterial({ color, roughness:0.6, metalness:0.15 }));
+    mesh.castShadow=true; scene.add(mesh); meshes.push({ body, mesh }); return body;
   }
-  const START={x:0,y:3.0,z:0};
-  let torso,head2,armL,armR,legL,legR; const hinges={};
-  (function build(){
-    torso=makePart(0.45,0.6,0.28,6,0xffd24a,{x:0,y:START.y,z:0});
-    head2=makePart(0.26,0.26,0.26,1.0,0x7ec8ff,{x:0,y:START.y+1.0,z:0});
-    armL=makePart(0.16,0.5,0.16,1.2,0x8affc1,{x:-0.75,y:START.y+0.1,z:0});
-    armR=makePart(0.16,0.5,0.16,1.2,0xff9d5c,{x:0.75,y:START.y+0.1,z:0});
-    legL=makePart(0.2,0.62,0.2,2.2,0xc9a0ff,{x:-0.26,y:START.y-1.1,z:0});
-    legR=makePart(0.2,0.62,0.2,2.2,0xff7fa8,{x:0.26,y:START.y-1.1,z:0});
-    const X=new CANNON.Vec3(1,0,0);
-    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:new CANNON.Vec3(0,0.6,0),pivotB:new CANNON.Vec3(0,-0.26,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:new CANNON.Vec3(-0.45,0.45,0),pivotB:new CANNON.Vec3(0,0.5,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:new CANNON.Vec3(0.45,0.45,0),pivotB:new CANNON.Vec3(0,0.5,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:new CANNON.Vec3(-0.26,-0.6,0),pivotB:new CANNON.Vec3(0,0.62,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:new CANNON.Vec3(0.26,-0.6,0),pivotB:new CANNON.Vec3(0,0.62,0),axisA:X,axisB:X,maxForce:1e6});
-    for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power); }
-  })();
+  const START = { x:0, y:3.0, z:0 };
+  let torso, head, armL, armR, legL, legR; const hinges = {};
+  function buildRobot(){
+    torso = makePart(0.45,0.6,0.28,6,0xffd24a,{x:START.x,y:START.y,z:START.z});
+    head  = makePart(0.26,0.26,0.26,1.0,0x7ec8ff,{x:START.x,y:START.y+1.0,z:START.z});
+    armL  = makePart(0.16,0.5,0.16,1.2,0x8affc1,{x:START.x-0.75,y:START.y+0.1,z:START.z});
+    armR  = makePart(0.16,0.5,0.16,1.2,0xff9d5c,{x:START.x+0.75,y:START.y+0.1,z:START.z});
+    legL  = makePart(0.2,0.62,0.2,2.2,0xc9a0ff,{x:START.x-0.26,y:START.y-1.1,z:START.z});
+    legR  = makePart(0.2,0.62,0.2,2.2,0xff7fa8,{x:START.x+0.26,y:START.y-1.1,z:START.z});
+    const X = new CANNON.Vec3(1,0,0);
+    hinges.head = new CANNON.HingeConstraint(torso, head, { pivotA:new CANNON.Vec3(0,0.6,0), pivotB:new CANNON.Vec3(0,-0.26,0), axisA:X, axisB:X, maxForce:1e6 });
+    hinges.armL = new CANNON.HingeConstraint(torso, armL, { pivotA:new CANNON.Vec3(-0.45,0.45,0), pivotB:new CANNON.Vec3(0,0.5,0), axisA:X, axisB:X, maxForce:1e6 });
+    hinges.armR = new CANNON.HingeConstraint(torso, armR, { pivotA:new CANNON.Vec3(0.45,0.45,0), pivotB:new CANNON.Vec3(0,0.5,0), axisA:X, axisB:X, maxForce:1e6 });
+    hinges.legL = new CANNON.HingeConstraint(torso, legL, { pivotA:new CANNON.Vec3(-0.26,-0.6,0), pivotB:new CANNON.Vec3(0,0.62,0), axisA:X, axisB:X, maxForce:1e6 });
+    hinges.legR = new CANNON.HingeConstraint(torso, legR, { pivotA:new CANNON.Vec3(0.26,-0.6,0), pivotB:new CANNON.Vec3(0,0.62,0), axisA:X, axisB:X, maxForce:1e6 });
+    for (const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power); }
+  }
+  buildRobot();
+  let startZ=START.z, startX=START.x, falls=0, fallen=false;
   function resetRobot(){
-    const parts=[[torso,0,START.y,0],[head2,0,START.y+1.0,0],[armL,-0.75,START.y+0.1,0],[armR,0.75,START.y+0.1,0],[legL,-0.26,START.y-1.1,0],[legR,0.26,START.y-1.1,0]];
-    for(const [b,x,y,z] of parts){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); }
+    const parts=[[torso,START.x,START.y,START.z],[head,START.x,START.y+1.0,START.z],[armL,START.x-0.75,START.y+0.1,START.z],
+      [armR,START.x+0.75,START.y+0.1,START.z],[legL,START.x-0.26,START.y-1.1,START.z],[legR,START.x+0.26,START.y-1.1,START.z]];
+    for (const [b,x,y,z] of parts){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); }
+    startZ=torso.position.z; startX=torso.position.x; fallen=false;
   }
 
-  // --- 입력 ---
-  const down={};
+  const down = {};
   addEventListener('keydown', e=>{ const k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(['arrowleft','arrowright',' '].includes(k)) e.preventDefault(); });
   addEventListener('keyup', e=>{ down[e.key.toLowerCase()]=false; });
+
+  // 터치/클릭 조작 패드
   document.querySelectorAll('#pad button[data-key]').forEach(b=>{
-    const key=b.getAttribute('data-key'); const on=e=>{e.preventDefault();down[key]=true;}; const off=e=>{if(e)e.preventDefault();down[key]=false;};
+    const key=b.getAttribute('data-key');
+    const on=e=>{ e.preventDefault(); down[key]=true; };
+    const off=e=>{ if(e) e.preventDefault(); down[key]=false; };
     b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off); b.addEventListener('touchcancel',off);
     b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off);
   });
-  document.getElementById('btnReset').addEventListener('click',()=>resetRobot());
+  document.getElementById('btnReset').addEventListener('click', ()=>resetRobot());
+  document.getElementById('hidePad').addEventListener('click', function(){ const p=document.getElementById('pad'); const hidden=p.style.display==='none'; p.style.display=hidden?'flex':'none'; this.textContent=hidden?'패드 숨기기':'패드 보이기'; });
+  document.getElementById('tuneToggle').addEventListener('click', function(){ const t=document.getElementById('tune'); const show=t.style.display!=='block'; t.style.display=show?'block':'none'; this.textContent=show?'튜닝 닫기':'튜닝 열기'; });
 
-  // --- 카메라 모드 ---
-  let camMode=0; const camNames=['전경','와이드','로봇'];
-  document.getElementById('camBtn').addEventListener('click', function(){ camMode=(camMode+1)%3; this.textContent='시점: '+camNames[camMode]; });
+  function motorFor(name, plusKey, minusKey){ const s=(down[plusKey]?1:0)-(down[minusKey]?1:0); hinges[name].setMotorSpeed(s*P.speed); hinges[name].setMotorMaxForce(P.power); }
+  const worldUp = new CANNON.Vec3(0,1,0), bodyUp = new CANNON.Vec3();
+  function applyBalance(){ torso.quaternion.vmult(worldUp, bodyUp); const axis=bodyUp.cross(worldUp); const a=P.balance;
+    torso.angularVelocity.x += axis.x*a*(1/60); torso.angularVelocity.z += axis.z*a*(1/60);
+    torso.angularVelocity.x *= 0.98; torso.angularVelocity.z *= 0.98; }
 
-  function motorFor(name,pk,mk){ const s=(down[pk]?1:0)-(down[mk]?1:0); hinges[name].setMotorSpeed(s*P.speed); hinges[name].setMotorMaxForce(P.power); }
-  const worldUp=new CANNON.Vec3(0,1,0), bUp=new CANNON.Vec3();
-  function balance(){ torso.quaternion.vmult(worldUp,bUp); const ax=bUp.cross(worldUp); const a=P.balance;
-    torso.angularVelocity.x+=ax.x*a/60; torso.angularVelocity.z+=ax.z*a/60; torso.angularVelocity.x*=0.98; torso.angularVelocity.z*=0.98; }
-
-  const stEl=document.getElementById('st'), distEl=document.getElementById('dist');
-  let last=performance.now(), t=0;
+  const stEl=document.getElementById('st'), fallsEl=document.getElementById('falls'), distEl=document.getElementById('dist');
+  let last=performance.now();
   function frame(now){
-    const dt=Math.min((now-last)/1000,1/30); last=now; t+=dt;
+    const dt=Math.min((now-last)/1000,1/30); last=now;
+    world.gravity.set(0,-P.gravity,0); world.contactmaterials.forEach(cm=>{ cm.friction=P.footFriction; });
     motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.');
     const hs=(down['arrowright']?1:0)-(down['arrowleft']?1:0); hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power);
-    balance(); world.step(1/60, dt, 3);
-    for(const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
-
-    // 괴물 아이들: 상하 진동 + 로봇 향해 살짝 흔들
-    monster.position.y=Math.sin(t*1.3)*0.25;
-    monster.rotation.y=Math.sin(t*0.4)*0.12;
-
-    // 사람들: 도망(시민) / 두리번(레인저) + 발동동
-    const mp=monster.position;
-    for(const pe of people){
-      const g=pe.g; g.position.y=Math.abs(Math.sin(t*6+pe.phase))*0.06;
-      if(pe.flee){
-        const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1;
-        g.position.x+=dx/L*dt*1.6; g.position.z+=dz/L*dt*1.6;
-        g.rotation.y=Math.atan2(dx,dz);
-        if(L>60){ const ang=Math.random()*6.28, r=4+Math.random()*8; g.position.x=Math.cos(ang)*r; g.position.z=6+Math.sin(ang)*r; }
-      } else {
-        g.rotation.y=Math.sin(t*0.8+pe.phase)*0.6;
-      }
-    }
-
-    const st=head2.position.y-torso.position.y;
-    stEl.textContent = st<0.35?'넘어짐':'서있음';
-    distEl.textContent = Math.hypot(torso.position.x, torso.position.z).toFixed(1);
-
-    // 카메라
+    applyBalance(); world.step(1/60, dt, 3);
+    for (const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
+    const upright = head.position.y - torso.position.y;
+    if (!fallen && upright<0.35){ fallen=true; falls++; fallsEl.textContent=falls; }
+    if (fallen && upright>0.75) fallen=false;
+    stEl.textContent = fallen?'넘어짐':'서있음';
+    const dz=torso.position.z-startZ, dx=torso.position.x-startX; distEl.textContent=Math.sqrt(dz*dz+dx*dx).toFixed(1);
     const tp=torso.position;
-    let desired, look;
-    if(camMode===0){ desired=new THREE.Vector3(tp.x+5, 7, tp.z+18); look=new THREE.Vector3(tp.x, 2.5, tp.z-9); }
-    else if(camMode===1){ desired=new THREE.Vector3(24, 20, 34); look=new THREE.Vector3(0, 4, -8); }
-    else { desired=new THREE.Vector3(tp.x+4, tp.y+3.5, tp.z+8); look=new THREE.Vector3(tp.x, tp.y+0.5, tp.z); }
-    camera.position.lerp(desired, camMode===1?0.04:0.06); camera.lookAt(look);
-
+    camera.position.lerp(new THREE.Vector3(tp.x+6,tp.y+4,tp.z+8),0.06); camera.lookAt(new THREE.Vector3(tp.x,tp.y+0.5,tp.z));
     renderer.render(scene,camera); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

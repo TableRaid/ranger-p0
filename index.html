@@ -350,16 +350,16 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function hurtMonster(n,pushx,pushz){ if(!mAlive) return; mHP-=n; if(pushx!==undefined){ monster.position.x-=pushx*0.5; monster.position.z-=pushz*0.5; } if(mHP<=0){ mHP=0; mAlive=false; if(combatOn) endGame(true); } setHP(); }
 
   // === 총격전 + 라이벌 플레이어(봇) ===
-  const BHALF=90; const bulletGeo=new THREE.SphereGeometry(0.5,8,8);
+  const BHALF=90; const bulletGeo=new THREE.SphereGeometry(0.12,8,8);
   const imP=new THREE.InstancedMesh(bulletGeo,M(CYAN,{em:CYAN,ei:3,ro:0.3}),BHALF); const imE=new THREE.InstancedMesh(bulletGeo,M(0xff6a6a,{em:0xff3a3a,ei:3,ro:0.3}),BHALF); scene.add(imP); scene.add(imE);
   const bullets=[]; const _bd=new THREE.Object3D();
-  function spawnBullet(x,y,z,vx,vy,vz,team,dmg){ if(bullets.length>170) return; bullets.push({x,y,z,vx,vy,vz,team,dmg,life:2.4}); }
+  function spawnBullet(x,y,z,vx,vy,vz,team,dmg,r){ if(bullets.length>170) return; bullets.push({x,y,z,vx,vy,vz,team,dmg,life:2.4,r:r||1}); }
   function playerPos(){ if(state==='combined'&&torso) return {x:torso.position.x,y:torso.position.y+2,z:torso.position.z}; if(state==='piloting'){ const g=planes[playerIdx>=0?playerIdx:0].g.position; return {x:g.x,y:g.y,z:g.z}; } return {x:human.position.x,y:1.0,z:human.position.z}; }
   function aimDir(){ const pp=playerPos(); let best=null,bd=1e9; if(mAlive){ const d=(monster.position.x-pp.x)**2+(monster.position.z-pp.z)**2; if(d<bd){bd=d;best={x:monster.position.x,y:monster.position.y+5,z:monster.position.z};} } for(const bot of bots){ if(!bot.alive) continue; const d=(bot.x-pp.x)**2+(bot.z-pp.z)**2; if(d<bd){bd=d;best={x:bot.x,y:1.1,z:bot.z};} }
     if(best && bd<70*70){ const dx=best.x-pp.x,dy=best.y-pp.y,dz=best.z-pp.z,L=Math.hypot(dx,dy,dz)||1; return {x:dx/L,y:dy/L,z:dz/L}; } const h=(state==='piloting')?planes[playerIdx>=0?playerIdx:0].heading:heading; return {x:Math.sin(h),y:0.03,z:Math.cos(h)}; }
   function fire(){ if(fireCD>0||downT>0) return; const combined=state==='combined';
-    if(state==='human'){ fireCD=0.13; const cd=Math.cos(pitch); const dx=Math.sin(heading)*cd, dy=Math.sin(pitch), dz=Math.cos(heading)*cd; spawnBullet(human.position.x+dx*0.6, human.position.y+0.46+dy*0.6, human.position.z+dz*0.6, dx*95, dy*95, dz*95, 0, 6); return; }
-    fireCD=combined?0.16:0.11; const pp=playerPos(), d=aimDir(); const spd=(state==='piloting')?72:64, off=combined?4:3.2; spawnBullet(pp.x+d.x*off, pp.y+d.y*off, pp.z+d.z*off, d.x*spd, d.y*spd+1, d.z*spd, 0, combined?11:6); }
+    if(state==='human'){ fireCD=0.13; const cd=Math.cos(pitch); const dx=Math.sin(heading)*cd, dy=Math.sin(pitch), dz=Math.cos(heading)*cd; spawnBullet(human.position.x+dx*0.6, human.position.y+0.46+dy*0.6, human.position.z+dz*0.6, dx*95, dy*95, dz*95, 0, 6, 1); return; }
+    fireCD=combined?0.16:0.11; const pp=playerPos(), d=aimDir(); const spd=(state==='piloting')?72:64, off=combined?4:3.2; spawnBullet(pp.x+d.x*off, pp.y+d.y*off, pp.z+d.z*off, d.x*spd, d.y*spd+1, d.z*spd, 0, combined?12:6, combined?4:1.8); }
   const botCols=[0x3f7bff,0x37d67a,0xffd23b,0xb06bff,0xff7a2f,0x39e6ff,0xff5f9e];
   const bots=[]; function makeBot(i){ const g=makePerson(botCols[i%botCols.length]); B(g,0.09,0.09,0.3,0x20242e,0.17,0.28,0.14,{me:0.3}); scene.add(g); const a=Math.random()*6.28,r=18+Math.random()*44; return {g,x:Math.cos(a)*r,z:Math.sin(a)*r,hp:18,alive:true,resp:0,fireCD:Math.random()*1.4,h:Math.random()*6.28}; }
   for(let i=0;i<7;i++) bots.push(makeBot(i));
@@ -367,13 +367,13 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function updateBots(dt){ const pp=playerPos(); for(const bot of bots){ if(!bot.alive){ bot.resp-=dt; if(bot.resp<=0){ const a=Math.random()*6.28,r=24+Math.random()*40; bot.x=Math.cos(a)*r; bot.z=Math.sin(a)*r; bot.hp=18; bot.alive=true; bot.g.visible=true; } continue; }
       const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; if(L>18){ bot.x+=dx/L*4.2*dt; bot.z+=dz/L*4.2*dt; } else { bot.x+=(-dz/L)*3*dt; bot.z+=(dx/L)*3*dt; }
       bot.g.position.set(bot.x, Math.abs(Math.sin(tG*7+bot.h))*0.05, bot.z); bot.g.rotation.y=Math.atan2(dx,dz);
-      bot.fireCD-=dt; if(bot.fireCD<=0 && L<48){ bot.fireCD=0.9+Math.random()*0.8; const ex=dx/L, ez=dz/L; spawnBullet(bot.x+ex*0.7,1.0,bot.z+ez*0.7, ex*42, 3.5, ez*42, 1, 5); } } }
+      bot.fireCD-=dt; if(bot.fireCD<=0 && L<48){ bot.fireCD=0.9+Math.random()*0.8; const ex=dx/L, ez=dz/L; spawnBullet(bot.x+ex*0.7,1.0,bot.z+ez*0.7, ex*42, 3.5, ez*42, 1, 5, 1); } } }
   function updateBullets(dt){ for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vy-=3*dt; b.life-=dt; let hit=false;
       if(b.team===0){ if(mAlive){ const dx=b.x-monster.position.x, dy=b.y-(monster.position.y+5), dz=b.z-monster.position.z; if(dx*dx+dy*dy+dz*dz<18){ hurtMonster(b.dmg); hit=true; } }
         if(!hit) for(const bot of bots){ if(!bot.alive) continue; const dx=b.x-bot.x, dy=b.y-1, dz=b.z-bot.z; if(dx*dx+dy*dy+dz*dz<1.8){ bot.hp-=b.dmg; hit=true; if(bot.hp<=0) killBot(bot); break; } }
-      } else { const pp=playerPos(); const rad=(state==='combined')?4.4:1.3; const dx=b.x-pp.x, dy=b.y-pp.y, dz=b.z-pp.z; if(dx*dx+dy*dy+dz*dz<rad*rad){ damagePlayer(b.dmg); hit=true; } }
+      } else if(state!=='combined'){ const pp=playerPos(); const dx=b.x-pp.x, dy=b.y-pp.y, dz=b.z-pp.z; if(dx*dx+dy*dy+dz*dz<1.7){ damagePlayer(b.dmg); hit=true; } }
       if(hit||b.life<=0||b.y<0.15){ bullets.splice(i,1); } }
-    let ci=0,ei=0; for(const b of bullets){ _bd.position.set(b.x,b.y,b.z); _bd.scale.set(1,1,1); _bd.updateMatrix(); if(b.team===0){ if(ci<BHALF) imP.setMatrixAt(ci++,_bd.matrix); } else { if(ei<BHALF) imE.setMatrixAt(ei++,_bd.matrix); } }
+    let ci=0,ei=0; for(const b of bullets){ _bd.position.set(b.x,b.y,b.z); _bd.scale.set(b.r,b.r,b.r); _bd.updateMatrix(); if(b.team===0){ if(ci<BHALF) imP.setMatrixAt(ci++,_bd.matrix); } else { if(ei<BHALF) imE.setMatrixAt(ei++,_bd.matrix); } }
     _bd.scale.set(0,0,0); _bd.updateMatrix(); for(let k=ci;k<BHALF;k++) imP.setMatrixAt(k,_bd.matrix); for(let k=ei;k<BHALF;k++) imE.setMatrixAt(k,_bd.matrix); imP.instanceMatrix.needsUpdate=true; imE.instanceMatrix.needsUpdate=true; }
   function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
   ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);

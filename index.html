@@ -3,47 +3,57 @@
   html, body { margin:0; height:100%; overflow:hidden; background:#1a1430; font-family:system-ui,sans-serif; color:#e8ecf4; }
   #app { position:fixed; inset:0; }
   .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.5; backdrop-filter:blur(4px); z-index:5; }
-  #title { left:10px; top:10px; max-width:250px; }
+  #title { left:10px; top:10px; max-width:245px; }
   #title h1 { font-size:13px; margin:0 0 4px; }
   #title .sub { color:#b9c4e6; font-size:11px; }
-  #title .row { margin-top:5px; }
-  #title .dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle; }
-  #title .k { display:inline-block; min-width:18px; padding:1px 5px; margin:0 2px 2px 0; background:#20305a; border:1px solid #3a4e82; border-radius:5px; text-align:center; font-weight:600; }
+  #title .hint { margin-top:6px; color:#9fb0d4; font-size:11px; }
+  #title .k { display:inline-block; min-width:16px; padding:1px 5px; margin:0 2px 2px 0; background:#20305a; border:1px solid #3a4e82; border-radius:5px; text-align:center; font-weight:600; }
   #status { left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); font-size:12px; }
   #status b { color:#ffce54; }
-  #combineBtn { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:8;
+  #ctxBtn { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:8;
     font-size:16px; font-weight:800; letter-spacing:2px; color:#101018; background:linear-gradient(180deg,#ffd76a,#ff9d3c); border:none; border-radius:12px; padding:12px 26px; box-shadow:0 4px 18px rgba(255,150,40,.45); cursor:pointer; }
-  #combineBtn:active { transform:translateX(-50%) translateY(2px); }
-  #pad { position:fixed; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:6; display:flex; gap:8px; align-items:flex-end; }
+  #ctxBtn:active { transform:translateX(-50%) translateY(2px); }
+  #ctxBtn:disabled { opacity:.4; }
+  #exitBtn { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(64px + env(safe-area-inset-bottom)); z-index:8; display:none;
+    font-size:12px; color:#b9c4e6; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 12px; }
+  #camBtn { position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#b9c4e6; border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  /* 이동 d-pad (인간/조종) */
+  #movePad { position:fixed; left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:6; display:flex; flex-direction:column; align-items:center; gap:5px; }
+  #movePad .mrow { display:flex; gap:5px; }
+  #movePad button { width:50px; height:44px; border-radius:10px; border:1px solid #3a4e82; background:#22315c; color:#fff; font-size:16px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #movePad button:active { background:#33477e; }
+  /* 로봇 팔다리 pad */
+  #pad { position:fixed; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:6; display:none; gap:8px; align-items:flex-end; }
   #pad .cluster { display:grid; gap:5px; justify-items:center; }
   #pad .cluster.mid { align-self:center; }
   #pad .lbl { font-size:10px; color:#b9c4e6; }
-  #pad button { width:48px; height:36px; border-radius:9px; border:1px solid #3a4e82; background:#22315c; color:#fff; font-size:14px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #pad button { width:46px; height:34px; border-radius:9px; border:1px solid #3a4e82; background:#22315c; color:#fff; font-size:14px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
   #pad button:active { background:#33477e; }
-  #pad #btnReset { width:62px; height:30px; font-size:11px; }
-  #camBtn { position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#b9c4e6; border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
-  @media (max-width:760px){ #title{max-width:158px;font-size:11px;} }
+  #pad #btnReset { width:60px; height:30px; font-size:11px; }
+  @media (max-width:760px){ #title{max-width:150px;font-size:11px;} }
 </style>
 
 <div id="app"></div>
 
 <div id="title" class="panel">
-  <h1>레인저 서바이벌 — 합체 (볼트론式)</h1>
-  <div class="sub">5기 합체 → 히어로 로봇</div>
-  <div class="row"><span class="dot" style="background:#e0b23a"></span>지휘선 &nbsp;<span class="dot" style="background:#2f6bd8"></span>전투기 &nbsp;<span class="dot" style="background:#d8352f"></span>건쉽</div>
-  <div class="row"><span class="dot" style="background:#4aa64a"></span>전차 &nbsp;<span class="dot" style="background:#ff7a2f"></span>드릴로버</div>
-  <div class="row" style="margin-top:6px;color:#9fb0d4;font-size:11px;">
-    아래 <b style="color:#ffd76a">합체</b>(또는 Space)로 결합/분리.<br>합체 후 다리 <span class="k">A</span><span class="k">Z</span><span class="k">L</span><span class="k">.</span> 팔 <span class="k">Q</span><span class="k">W</span><span class="k">O</span><span class="k">P</span> · <span class="k">R</span> 세우기
-  </div>
+  <h1>레인저 서바이벌</h1>
+  <div class="sub" id="stagehint">인간 → 탈것 탑승 → 합체 → 로봇</div>
+  <div class="hint" id="ctrlhint">이동 <span class="k">&uarr;</span><span class="k">&darr;</span><span class="k">&larr;</span><span class="k">&rarr;</span> · 탈것 옆에서 <b style="color:#ffd76a">탑승</b></div>
 </div>
 
-<button id="camBtn">시점: 전경</button>
-<div id="status" class="panel">상태: <b id="st">비행 중</b> · 부순 건물 <b id="wrecked">0</b></div>
-<button id="combineBtn">합&nbsp;체</button>
+<button id="camBtn">시점: 추적</button>
+<div id="status" class="panel">상태: <b id="st">인간</b> · 부순 건물 <b id="wrecked">0</b></div>
+<button id="exitBtn">하차</button>
+<button id="ctxBtn">탑 승</button>
+
+<div id="movePad">
+  <button data-key="arrowup">&#9650;</button>
+  <div class="mrow"><button data-key="arrowleft">&#9664;</button><button data-key="arrowdown">&#9660;</button><button data-key="arrowright">&#9654;</button></div>
+</div>
 
 <div id="pad">
   <div class="cluster"><div class="lbl">왼팔</div><button data-key="q">&#9650;</button><button data-key="w">&#9660;</button><div class="lbl">왼다리</div><button data-key="a">&#9650;</button><button data-key="z">&#9660;</button></div>
-  <div class="cluster mid"><button data-key="arrowleft">&#9664;</button><button data-key="arrowright">&#9654;</button><button id="btnReset">R 세우기</button></div>
+  <div class="cluster mid"><button data-key="headL">머리&#9664;</button><button data-key="headR">머리&#9654;</button><button id="btnReset">R 세우기</button></div>
   <div class="cluster"><div class="lbl">오른팔</div><button data-key="o">&#9650;</button><button data-key="p">&#9660;</button><div class="lbl">오른다리</div><button data-key="l">&#9650;</button><button data-key=".">&#9660;</button></div>
 </div>
 
@@ -88,215 +98,168 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   const RS = 2.0;
   const P = { power:280, speed:6, balance:11, footFriction:1.5, gravity:9.8 };
   const RED=0xd8352f, BLUE=0x2f6bd8, GOLD=0xffcf4a, WHITE=0xe9eef6, DARK=0x252b38, STEEL=0x8a94a8, CYAN=0x39e6ff, ORANGE=0xff7a2f, GREEN=0x4aa64a, PURPLE=0x9a5cff, GLASS=0x9fd0ff;
-
-  // ---- 프리미티브 헬퍼 ----
   function M(c,o){o=o||{};return new THREE.MeshStandardMaterial({color:c,roughness:o.ro!==undefined?o.ro:0.5,metalness:o.me!==undefined?o.me:0.45,emissive:o.em||0x000000,emissiveIntensity:o.ei!==undefined?o.ei:1});}
   function B(g,w,h,d,c,x,y,z,o){o=o||{};const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c,o));m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;m.castShadow=true;g.add(m);return m;}
   function C(g,rt,rb,h,c,x,y,z,o){o=o||{};const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,o.seg||12),M(c,o));m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;m.castShadow=true;g.add(m);return m;}
   function CO(g,r,h,c,x,y,z,o){o=o||{};const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,o.seg||14),M(c,o));m.position.set(x,y,z);if(o.rx)m.rotation.x=o.rx;if(o.ry)m.rotation.y=o.ry;if(o.rz)m.rotation.z=o.rz;m.castShadow=true;g.add(m);return m;}
-  const glassO={ro:0.2,me:0.2,em:0x1a4a6a,ei:0.5};
-  const glowO=(c)=>({ro:0.4,me:0.1,em:c,ei:2.2});
+  const glassO={ro:0.2,me:0.2,em:0x1a4a6a,ei:0.5}; const glowO=(c)=>({ro:0.4,me:0.1,em:c,ei:2.2});
 
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x35305e, 75, 300);
+  const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x35305e, 75, 300);
   const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 900);
-  const renderer = new THREE.WebGLRenderer({ antialias:true });
-  renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.outputEncoding = THREE.sRGBEncoding;
+  const renderer = new THREE.WebGLRenderer({ antialias:true }); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputEncoding=THREE.sRGBEncoding;
   document.getElementById('app').appendChild(renderer.domElement);
   addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 
-  scene.add(new THREE.Mesh(new THREE.SphereGeometry(500,32,20), new THREE.ShaderMaterial({ side:THREE.BackSide,
-    uniforms:{ top:{value:new THREE.Color(0x14204e)}, mid:{value:new THREE.Color(0x6a2f6e)}, bot:{value:new THREE.Color(0xe0763c)} },
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(500,32,20), new THREE.ShaderMaterial({ side:THREE.BackSide, uniforms:{ top:{value:new THREE.Color(0x14204e)}, mid:{value:new THREE.Color(0x6a2f6e)}, bot:{value:new THREE.Color(0xe0763c)} },
     vertexShader:'varying vec3 vp; void main(){ vp=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-    fragmentShader:'varying vec3 vp; uniform vec3 top; uniform vec3 mid; uniform vec3 bot; void main(){ float h=normalize(vp).y; vec3 c = h>0.12 ? mix(mid,top,smoothstep(0.12,0.75,h)) : mix(bot,mid,smoothstep(-0.08,0.12,h)); gl_FragColor=vec4(c,1.0);}' })));
-  (function(){ const g=new THREE.BufferGeometry(); const n=340, a=new Float32Array(n*3); for(let i=0;i<n;i++){ const th=Math.random()*6.28, ph=Math.random()*0.5+0.05, r=460; a[i*3]=Math.cos(th)*Math.cos(ph)*r; a[i*3+1]=Math.sin(ph)*r; a[i*3+2]=Math.sin(th)*Math.cos(ph)*r; } g.setAttribute('position', new THREE.BufferAttribute(a,3)); scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0xfff2d0, size:1.6, sizeAttenuation:false }))); })();
+    fragmentShader:'varying vec3 vp; uniform vec3 top; uniform vec3 mid; uniform vec3 bot; void main(){ float h=normalize(vp).y; vec3 c=h>0.12?mix(mid,top,smoothstep(0.12,0.75,h)):mix(bot,mid,smoothstep(-0.08,0.12,h)); gl_FragColor=vec4(c,1.0);}' })));
+  (function(){ const g=new THREE.BufferGeometry(); const n=340,a=new Float32Array(n*3); for(let i=0;i<n;i++){ const th=Math.random()*6.28,ph=Math.random()*0.5+0.05,r=460; a[i*3]=Math.cos(th)*Math.cos(ph)*r; a[i*3+1]=Math.sin(ph)*r; a[i*3+2]=Math.sin(th)*Math.cos(ph)*r; } g.setAttribute('position',new THREE.BufferAttribute(a,3)); scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xfff2d0,size:1.6,sizeAttenuation:false}))); })();
 
-  scene.add(new THREE.HemisphereLight(0x8b9ad8, 0x3a2c46, 1.0));
-  scene.add(new THREE.AmbientLight(0x404a6e, 0.4));
-  const key = new THREE.DirectionalLight(0xffd2a0, 1.6); key.position.set(-40,36,22); key.castShadow=true;
-  key.shadow.mapSize.set(2048,2048); const S=60; key.shadow.camera.left=-S; key.shadow.camera.right=S; key.shadow.camera.top=S; key.shadow.camera.bottom=-S; key.shadow.camera.far=220; key.shadow.bias=-0.0004; scene.add(key);
-  const fill = new THREE.DirectionalLight(0x6f8bff, 0.55); fill.position.set(30,18,-20); scene.add(fill);
+  scene.add(new THREE.HemisphereLight(0x8b9ad8,0x3a2c46,1.0)); scene.add(new THREE.AmbientLight(0x404a6e,0.4));
+  const key=new THREE.DirectionalLight(0xffd2a0,1.6); key.position.set(-40,36,22); key.castShadow=true; key.shadow.mapSize.set(2048,2048); const S=60; key.shadow.camera.left=-S; key.shadow.camera.right=S; key.shadow.camera.top=S; key.shadow.camera.bottom=-S; key.shadow.camera.far=220; key.shadow.bias=-0.0004; scene.add(key);
+  const fill=new THREE.DirectionalLight(0x6f8bff,0.55); fill.position.set(30,18,-20); scene.add(fill);
+  const ground3=new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.MeshStandardMaterial({color:0x222036,roughness:1})); ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
+  const grid=new THREE.GridHelper(900,180,0x3a3a66,0x2a2748); grid.position.y=0.02; scene.add(grid);
 
-  const ground3 = new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.MeshStandardMaterial({ color:0x222036, roughness:1 }));
-  ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
-  const grid = new THREE.GridHelper(900,180,0x3a3a66,0x2a2748); grid.position.y=0.02; scene.add(grid);
-
-  const world = new CANNON.World(); world.gravity.set(0,-P.gravity,0);
-  world.broadphase = new CANNON.SAPBroadphase(world); world.solver.iterations=18; world.defaultContactMaterial.contactEquationStiffness=1e7;
+  const world=new CANNON.World(); world.gravity.set(0,-P.gravity,0); world.broadphase=new CANNON.SAPBroadphase(world); world.solver.iterations=18; world.defaultContactMaterial.contactEquationStiffness=1e7;
   const GROUND=1, ROBOT=2, BUILDING=4;
   const matGround=new CANNON.Material('g'), matFoot=new CANNON.Material('f');
-  const gb=new CANNON.Body({ mass:0, material:matGround, collisionFilterGroup:GROUND, collisionFilterMask:ROBOT|BUILDING });
-  gb.addShape(new CANNON.Plane()); gb.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2); world.addBody(gb);
-  world.addContactMaterial(new CANNON.ContactMaterial(matGround, matFoot, { friction:P.footFriction, restitution:0 }));
+  const gb=new CANNON.Body({mass:0,material:matGround,collisionFilterGroup:GROUND,collisionFilterMask:ROBOT|BUILDING}); gb.addShape(new CANNON.Plane()); gb.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2); world.addBody(gb);
+  world.addContactMaterial(new CANNON.ContactMaterial(matGround,matFoot,{friction:P.footFriction,restitution:0}));
 
-  // 건물
-  function makeWindowTexture(){ const c=document.createElement('canvas'); c.width=64;c.height=128; const g=c.getContext('2d'); g.fillStyle='#0c1020'; g.fillRect(0,0,64,128); for(let y=5;y<128;y+=11) for(let x=5;x<64;x+=13){ const lit=Math.random()<0.5; g.fillStyle= lit?(Math.random()<0.5?'#ffd694':'#9fd0ff'):'#161e34'; g.fillRect(x,y,8,7);} return new THREE.CanvasTexture(c); }
-  const winTex=makeWindowTexture();
-  const bGeo=new THREE.BoxGeometry(1,1,1);
-  const bMat=new THREE.MeshStandardMaterial({ color:0x2a3350, roughness:0.9, emissive:0xffffff, emissiveMap:winTex, emissiveIntensity:0.6 });
-  const debMat=new THREE.MeshStandardMaterial({ color:0x2a3350, roughness:0.95, emissive:0x111826, emissiveIntensity:0.3 });
+  function makeWindowTexture(){ const c=document.createElement('canvas'); c.width=64;c.height=128; const g=c.getContext('2d'); g.fillStyle='#0c1020'; g.fillRect(0,0,64,128); for(let y=5;y<128;y+=11)for(let x=5;x<64;x+=13){ const lit=Math.random()<0.5; g.fillStyle=lit?(Math.random()<0.5?'#ffd694':'#9fd0ff'):'#161e34'; g.fillRect(x,y,8,7);} return new THREE.CanvasTexture(c); }
+  const winTex=makeWindowTexture(); const bGeo=new THREE.BoxGeometry(1,1,1);
+  const bMat=new THREE.MeshStandardMaterial({color:0x2a3350,roughness:0.9,emissive:0xffffff,emissiveMap:winTex,emissiveIntensity:0.6});
+  const debMat=new THREE.MeshStandardMaterial({color:0x2a3350,roughness:0.95,emissive:0x111826,emissiveIntensity:0.3});
   const buildings=[]; const debris=[]; let wrecked=0; const wreckedEl=document.getElementById('wrecked');
   function makeBuilding(x,z,w,h,d,rot){ const mesh=new THREE.Mesh(bGeo,bMat); mesh.scale.set(w,h,d); mesh.position.set(x,h/2,z); mesh.rotation.y=rot; mesh.castShadow=true; mesh.receiveShadow=true; scene.add(mesh);
-    const body=new CANNON.Body({ mass:0, collisionFilterGroup:BUILDING, collisionFilterMask:ROBOT|BUILDING|GROUND, position:new CANNON.Vec3(x,h/2,z) }); body.addShape(new CANNON.Box(new CANNON.Vec3(w/2,h/2,d/2))); body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),rot); world.addBody(body);
-    const b={mesh,body,alive:true,w,h,d,x,z}; body.addEventListener('collide', function(){ if(b.alive) destroyBuilding(b); }); buildings.push(b); }
-  for(let i=0;i<48;i++){ const ang=Math.random()*6.28, rad=42+Math.random()*112; makeBuilding(Math.cos(ang)*rad, Math.sin(ang)*rad-6, 5+Math.random()*6, 10+Math.random()*42, 5+Math.random()*6, Math.random()*Math.PI); }
-  function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; scene.remove(b.mesh); world.removeBody(b.body);
-    const nx=2, ny=Math.max(2,Math.round(b.h/6)), nz=2, cw=b.w/nx, ch=b.h/ny, cd=b.d/nz;
-    for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){ const px=b.x+(ix+0.5-nx/2)*cw, py=(iy+0.5)*ch, pz=b.z+(iz+0.5-nz/2)*cd;
-      const body=new CANNON.Body({ mass:3, collisionFilterGroup:BUILDING, collisionFilterMask:GROUND|BUILDING|ROBOT, position:new CANNON.Vec3(px,py,pz), angularDamping:0.2 }); body.addShape(new CANNON.Box(new CANNON.Vec3(cw/2,ch/2,cd/2))); body.velocity.set((Math.random()-0.5)*7,Math.random()*5,(Math.random()-0.5)*7); body.angularVelocity.set((Math.random()-0.5)*5,(Math.random()-0.5)*5,(Math.random()-0.5)*5); world.addBody(body);
-      const mesh=new THREE.Mesh(bGeo,debMat); mesh.scale.set(cw,ch,cd); mesh.castShadow=true; scene.add(mesh); debris.push({body,mesh,life:7}); }
+    const body=new CANNON.Body({mass:0,collisionFilterGroup:BUILDING,collisionFilterMask:ROBOT|BUILDING|GROUND,position:new CANNON.Vec3(x,h/2,z)}); body.addShape(new CANNON.Box(new CANNON.Vec3(w/2,h/2,d/2))); body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),rot); world.addBody(body);
+    const b={mesh,body,alive:true,w,h,d,x,z}; body.addEventListener('collide',function(){ if(b.alive) destroyBuilding(b); }); buildings.push(b); }
+  for(let i=0;i<48;i++){ const ang=Math.random()*6.28, rad=44+Math.random()*110; makeBuilding(Math.cos(ang)*rad, Math.sin(ang)*rad-6, 5+Math.random()*6, 10+Math.random()*42, 5+Math.random()*6, Math.random()*Math.PI); }
+  function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; scene.remove(b.mesh); world.removeBody(b.body); const nx=2,ny=Math.max(2,Math.round(b.h/6)),nz=2,cw=b.w/nx,ch=b.h/ny,cd=b.d/nz;
+    for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){ const px=b.x+(ix+0.5-nx/2)*cw,py=(iy+0.5)*ch,pz=b.z+(iz+0.5-nz/2)*cd; const body=new CANNON.Body({mass:3,collisionFilterGroup:BUILDING,collisionFilterMask:GROUND|BUILDING|ROBOT,position:new CANNON.Vec3(px,py,pz),angularDamping:0.2}); body.addShape(new CANNON.Box(new CANNON.Vec3(cw/2,ch/2,cd/2))); body.velocity.set((Math.random()-0.5)*7,Math.random()*5,(Math.random()-0.5)*7); body.angularVelocity.set((Math.random()-0.5)*5,(Math.random()-0.5)*5,(Math.random()-0.5)*5); world.addBody(body); const mesh=new THREE.Mesh(bGeo,debMat); mesh.scale.set(cw,ch,cd); mesh.castShadow=true; scene.add(mesh); debris.push({body,mesh,life:7}); }
     while(debris.length>200){ const d0=debris.shift(); scene.remove(d0.mesh); world.removeBody(d0.body); } }
 
-  // 괴물
-  function buildMonster(){ const g=new THREE.Group();
-    const skin=M(0x3a2850,{ro:0.7,me:0.1}); const glow=M(0x1c1030,{em:0xff3355,ei:2.0,ro:0.5});
-    const mk=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
-    mk(new THREE.BoxGeometry(4,4.6,3),skin,0,4.6,0); mk(new THREE.SphereGeometry(1.15,18,18),glow,0,4.3,1.45); mk(new THREE.BoxGeometry(2.5,2.1,2.3),skin,0,7.9,0);
-    const eye=M(0,{em:0xffee55,ei:3}); mk(new THREE.SphereGeometry(0.3,12,12),eye,-0.62,8.1,1.2); mk(new THREE.SphereGeometry(0.3,12,12),eye,0.62,8.1,1.2);
-    const h1=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,-0.85,9.4,0); h1.rotation.z=0.35; const h2=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,0.85,9.4,0); h2.rotation.z=-0.35;
-    const a1=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,-2.95,4.7,0); a1.rotation.z=0.28; const a2=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,2.95,4.7,0); a2.rotation.z=-0.28;
-    mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,-1.15,1.55,0); mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,1.15,1.55,0);
-    g.position.set(11,0,-30); scene.add(g); return g; }
+  function buildMonster(){ const g=new THREE.Group(); const skin=M(0x3a2850,{ro:0.7,me:0.1}); const glow=M(0x1c1030,{em:0xff3355,ei:2.0,ro:0.5}); const mk=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
+    mk(new THREE.BoxGeometry(4,4.6,3),skin,0,4.6,0); mk(new THREE.SphereGeometry(1.15,18,18),glow,0,4.3,1.45); mk(new THREE.BoxGeometry(2.5,2.1,2.3),skin,0,7.9,0); const eye=M(0,{em:0xffee55,ei:3}); mk(new THREE.SphereGeometry(0.3,12,12),eye,-0.62,8.1,1.2); mk(new THREE.SphereGeometry(0.3,12,12),eye,0.62,8.1,1.2);
+    const h1=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,-0.85,9.4,0); h1.rotation.z=0.35; const h2=mk(new THREE.ConeGeometry(0.38,1.6,8),skin,0.85,9.4,0); h2.rotation.z=-0.35; const a1=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,-2.95,4.7,0); a1.rotation.z=0.28; const a2=mk(new THREE.BoxGeometry(1.2,3.6,1.2),skin,2.95,4.7,0); a2.rotation.z=-0.28; mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,-1.15,1.55,0); mk(new THREE.BoxGeometry(1.5,3.1,1.5),skin,1.15,1.55,0);
+    g.position.set(12,0,-32); scene.add(g); return g; }
   const monster=buildMonster();
-
-  const RANGER=[0xff3b3b,0x3b7bff,0xffd23b,0x3bd47a,0xff7fc4];
   function makePerson(color){ const g=new THREE.Group(); B(g,0.17,0.3,0.11,color,0,0.25,0,{ro:0.6}); const h=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,10),M(0xf0c9a0,{ro:0.6})); h.position.y=0.46; h.castShadow=true; g.add(h); return g; }
-  const people=[];
-  for(let i=0;i<5;i++){ const p=makePerson(RANGER[i]); p.position.set(-2+i,0,7+Math.random()); scene.add(p); people.push({g:p,phase:Math.random()*6.28,flee:false}); }
-  for(let i=0;i<14;i++){ const p=makePerson(0xaeb7c9); const a=Math.random()*6.28,r=5+Math.random()*11; p.position.set(Math.cos(a)*r,0,9+Math.sin(a)*r*0.5); scene.add(p); people.push({g:p,phase:Math.random()*6.28,flee:true}); }
+  const people=[]; for(let i=0;i<14;i++){ const p=makePerson(0xaeb7c9); const a=Math.random()*6.28,r=6+Math.random()*11; p.position.set(Math.cos(a)*r,0,10+Math.sin(a)*r*0.5); scene.add(p); people.push({g:p,phase:Math.random()*6.28}); }
 
-  // === 탈것 5기 (볼트론式, 레고 디테일) ===
+  // === 플레이어 인간 (레인저) ===
+  function buildHero(){ const g=new THREE.Group(); B(g,0.34,0.5,0.22,RED,0,0.55,0); B(g,0.3,0.28,0.26,WHITE,0,0.92,0); B(g,0.28,0.09,0.1,DARK,0,0.9,0.14); B(g,0.1,0.06,0.12,CYAN,0,0.9,0.19,glowO(CYAN));
+    B(g,0.12,0.4,0.12,RED,-0.24,0.55,0); B(g,0.12,0.4,0.12,RED,0.24,0.55,0); B(g,0.14,0.44,0.14,0x232a38,-0.1,0.2,0); B(g,0.14,0.44,0.14,0x232a38,0.1,0.2,0); g.traverse(m=>{if(m.isMesh)m.castShadow=true;}); g.scale.setScalar(1.15); return g; }
+  const human=buildHero(); human.position.set(0,0,20); scene.add(human); let heading=Math.PI; // 도시(−z)를 향해
+
+  // === 탈것 5기 ===
   const SY=3.0*RS;
-  const PART = [
-    { name:'torso', slot:new THREE.Vector3(0,SY,0) },
-    { name:'armL',  slot:new THREE.Vector3(-0.75*RS, SY+0.1*RS, 0) },
-    { name:'armR',  slot:new THREE.Vector3(0.75*RS, SY+0.1*RS, 0) },
-    { name:'legL',  slot:new THREE.Vector3(-0.26*RS, SY-1.1*RS, 0) },
-    { name:'legR',  slot:new THREE.Vector3(0.26*RS, SY-1.1*RS, 0) },
-  ];
-  const slotQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0));
-  function studs(g,color,y,xs,z){ xs.forEach(x=> C(g,0.07,0.07,0.06,color,x,y,z,{seg:8,me:0.3})); }
-
-  function vehCommand(){ const g=new THREE.Group(); g.userData.spin=[];
-    B(g,1.1,0.5,3.0,WHITE,0,0,0,{me:0.5}); CO(g,0.42,1.1,RED,0,0,1.9,{rx:-Math.PI/2}); B(g,0.55,0.4,1.0,GLASS,0,0.34,0.6,glassO);
-    B(g,3.4,0.16,1.1,RED,0,0,-0.2); B(g,0.14,0.5,0.7,GOLD,1.7,0.22,-0.2); B(g,0.14,0.5,0.7,GOLD,-1.7,0.22,-0.2);
-    B(g,0.24,0.24,1.7,GOLD,0,0.42,-0.1); B(g,0.14,0.75,0.7,RED,0.42,0.42,-1.3); B(g,0.14,0.75,0.7,RED,-0.42,0.42,-1.3);
-    C(g,0.22,0.22,0.5,DARK,0.32,-0.05,-1.55,{rx:Math.PI/2}); C(g,0.22,0.22,0.5,DARK,-0.32,-0.05,-1.55,{rx:Math.PI/2});
-    CO(g,0.2,0.5,CYAN,0.32,-0.05,-1.95,glowO(CYAN)); CO(g,0.2,0.5,CYAN,-0.32,-0.05,-1.95,glowO(CYAN));
-    studs(g,GOLD,0.55,[-0.2,0.2],0.9); g.scale.setScalar(RS*0.85); return g; }
-
-  function vehJet(){ const g=new THREE.Group(); g.userData.spin=[];
-    B(g,0.5,0.42,2.4,BLUE,0,0,0,{me:0.55}); CO(g,0.26,1.3,WHITE,0,0,1.75,{rx:-Math.PI/2}); B(g,0.36,0.3,0.8,GLASS,0,0.26,0.5,glassO);
-    B(g,2.7,0.1,1.25,BLUE,0,-0.02,-0.35); B(g,0.1,0.42,0.7,BLUE,0,0.36,-1.0);
-    C(g,0.08,0.08,0.7,WHITE,0.75,-0.16,-0.1,{rx:Math.PI/2,seg:8}); CO(g,0.09,0.22,RED,0.75,-0.16,0.28,{rx:-Math.PI/2,seg:8});
-    C(g,0.08,0.08,0.7,WHITE,-0.75,-0.16,-0.1,{rx:Math.PI/2,seg:8}); CO(g,0.09,0.22,RED,-0.75,-0.16,0.28,{rx:-Math.PI/2,seg:8});
-    C(g,0.2,0.2,0.4,DARK,0,0,-1.3,{rx:Math.PI/2}); CO(g,0.18,0.45,CYAN,0,0,-1.65,glowO(CYAN)); g.scale.setScalar(RS*0.78); return g; }
-
-  function vehGunship(){ const g=new THREE.Group(); g.userData.spin=[];
-    B(g,0.8,0.62,1.9,RED,0,0,0.1,{me:0.5}); B(g,0.66,0.5,0.7,GLASS,0,0.05,0.85,glassO);
-    B(g,0.22,0.22,1.5,RED,0,0.15,-1.3); B(g,0.16,0.6,0.5,STEEL,0,0.45,-1.9);
-    const tr=B(g,0.05,0.55,0.14,DARK,0.12,0.45,-1.95); g.userData.spin.push({m:tr,ax:'x',sp:14});
-    C(g,0.08,0.08,0.34,DARK,0,0.5,0.1); const rot=new THREE.Group(); rot.position.set(0,0.68,0.1);
-    B(rot,3.0,0.05,0.2,DARK,0,0,0); B(rot,0.2,0.05,3.0,DARK,0,0,0); C(rot,0.1,0.1,0.1,GOLD,0,0.03,0); g.add(rot); g.userData.spin.push({m:rot,ax:'y',sp:20});
-    C(g,0.06,0.06,1.5,STEEL,0.4,-0.42,0.1,{rx:Math.PI/2,seg:8}); C(g,0.06,0.06,1.5,STEEL,-0.4,-0.42,0.1,{rx:Math.PI/2,seg:8});
-    C(g,0.07,0.07,0.6,DARK,0.42,-0.05,0.55,{rx:Math.PI/2,seg:8}); C(g,0.07,0.07,0.6,DARK,-0.42,-0.05,0.55,{rx:Math.PI/2,seg:8});
-    g.scale.setScalar(RS*0.8); return g; }
-
-  function vehTank(){ const g=new THREE.Group(); g.userData.spin=[];
-    B(g,1.25,0.5,1.9,GREEN,0,0,0,{me:0.35,ro:0.7}); B(g,1.2,0.36,0.7,GREEN,0,0.18,0.85,{rx:0.32,me:0.35});
-    B(g,0.75,0.42,0.75,0x3c7a3c,0,0.45,-0.1,{me:0.35}); C(g,0.1,0.1,1.5,DARK,0,0.45,0.8,{rx:Math.PI/2,seg:10}); C(g,0.14,0.14,0.2,DARK,0,0.45,1.5,{rx:Math.PI/2});
-    B(g,0.34,0.46,2.0,DARK,0.62,-0.05,0,{ro:0.9}); B(g,0.34,0.46,2.0,DARK,-0.62,-0.05,0,{ro:0.9});
-    const w1=C(g,0.24,0.24,0.12,STEEL,0.62,-0.18,0.6,{rx:Math.PI/2,seg:10}); const w2=C(g,0.24,0.24,0.12,STEEL,0.62,-0.18,-0.6,{rx:Math.PI/2,seg:10});
-    const w3=C(g,0.24,0.24,0.12,STEEL,-0.62,-0.18,0.6,{rx:Math.PI/2,seg:10}); const w4=C(g,0.24,0.24,0.12,STEEL,-0.62,-0.18,-0.6,{rx:Math.PI/2,seg:10});
-    [w1,w2,w3,w4].forEach(w=>g.userData.spin.push({m:w,ax:'x',sp:6})); C(g,0.02,0.02,0.9,STEEL,0.4,0.6,-0.6); g.scale.setScalar(RS*0.8); return g; }
-
-  function vehDrill(){ const g=new THREE.Group(); g.userData.spin=[];
-    B(g,1.05,0.6,1.6,ORANGE,0,0,-0.1,{me:0.4}); const dr=CO(g,0.42,1.4,STEEL,0,0,1.35,{rx:-Math.PI/2,me:0.7,seg:10}); g.userData.spin.push({m:dr,ax:'z',sp:16});
-    C(g,0.44,0.44,0.3,DARK,0,0,0.55,{rx:Math.PI/2,seg:12}); B(g,0.55,0.42,0.6,GLASS,0,0.32,-0.4,glassO);
-    B(g,0.3,0.5,1.5,DARK,0.56,-0.05,-0.1,{ro:0.9}); B(g,0.3,0.5,1.5,DARK,-0.56,-0.05,-0.1,{ro:0.9});
-    B(g,0.24,0.24,0.2,PURPLE,0,0.34,-0.9); CO(g,0.18,0.42,CYAN,0,0,-1.05,glowO(CYAN)); g.scale.setScalar(RS*0.8); return g; }
-
+  const PART=[ {name:'torso',slot:new THREE.Vector3(0,SY,0)}, {name:'armL',slot:new THREE.Vector3(-0.75*RS,SY+0.1*RS,0)}, {name:'armR',slot:new THREE.Vector3(0.75*RS,SY+0.1*RS,0)}, {name:'legL',slot:new THREE.Vector3(-0.26*RS,SY-1.1*RS,0)}, {name:'legR',slot:new THREE.Vector3(0.26*RS,SY-1.1*RS,0)} ];
+  const slotQuat=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(0,1,0));
+  function studs(g,color,y,xs,z){ xs.forEach(x=>C(g,0.07,0.07,0.06,color,x,y,z,{seg:8,me:0.3})); }
+  function vehCommand(){ const g=new THREE.Group(); g.userData.spin=[]; B(g,1.1,0.5,3.0,WHITE,0,0,0,{me:0.5}); CO(g,0.42,1.1,RED,0,0,1.9,{rx:-Math.PI/2}); B(g,0.55,0.4,1.0,GLASS,0,0.34,0.6,glassO); B(g,3.4,0.16,1.1,RED,0,0,-0.2); B(g,0.14,0.5,0.7,GOLD,1.7,0.22,-0.2); B(g,0.14,0.5,0.7,GOLD,-1.7,0.22,-0.2); B(g,0.24,0.24,1.7,GOLD,0,0.42,-0.1); B(g,0.14,0.75,0.7,RED,0.42,0.42,-1.3); B(g,0.14,0.75,0.7,RED,-0.42,0.42,-1.3); C(g,0.22,0.22,0.5,DARK,0.32,-0.05,-1.55,{rx:Math.PI/2}); C(g,0.22,0.22,0.5,DARK,-0.32,-0.05,-1.55,{rx:Math.PI/2}); CO(g,0.2,0.5,CYAN,0.32,-0.05,-1.95,glowO(CYAN)); CO(g,0.2,0.5,CYAN,-0.32,-0.05,-1.95,glowO(CYAN)); studs(g,GOLD,0.55,[-0.2,0.2],0.9); g.scale.setScalar(RS*0.85); return g; }
+  function vehJet(){ const g=new THREE.Group(); g.userData.spin=[]; B(g,0.5,0.42,2.4,BLUE,0,0,0,{me:0.55}); CO(g,0.26,1.3,WHITE,0,0,1.75,{rx:-Math.PI/2}); B(g,0.36,0.3,0.8,GLASS,0,0.26,0.5,glassO); B(g,2.7,0.1,1.25,BLUE,0,-0.02,-0.35); B(g,0.1,0.42,0.7,BLUE,0,0.36,-1.0); C(g,0.08,0.08,0.7,WHITE,0.75,-0.16,-0.1,{rx:Math.PI/2,seg:8}); CO(g,0.09,0.22,RED,0.75,-0.16,0.28,{rx:-Math.PI/2,seg:8}); C(g,0.08,0.08,0.7,WHITE,-0.75,-0.16,-0.1,{rx:Math.PI/2,seg:8}); CO(g,0.09,0.22,RED,-0.75,-0.16,0.28,{rx:-Math.PI/2,seg:8}); C(g,0.2,0.2,0.4,DARK,0,0,-1.3,{rx:Math.PI/2}); CO(g,0.18,0.45,CYAN,0,0,-1.65,glowO(CYAN)); g.scale.setScalar(RS*0.78); return g; }
+  function vehGunship(){ const g=new THREE.Group(); g.userData.spin=[]; B(g,0.8,0.62,1.9,RED,0,0,0.1,{me:0.5}); B(g,0.66,0.5,0.7,GLASS,0,0.05,0.85,glassO); B(g,0.22,0.22,1.5,RED,0,0.15,-1.3); B(g,0.16,0.6,0.5,STEEL,0,0.45,-1.9); const tr=B(g,0.05,0.55,0.14,DARK,0.12,0.45,-1.95); g.userData.spin.push({m:tr,ax:'x',sp:14}); C(g,0.08,0.08,0.34,DARK,0,0.5,0.1); const rot=new THREE.Group(); rot.position.set(0,0.68,0.1); B(rot,3.0,0.05,0.2,DARK,0,0,0); B(rot,0.2,0.05,3.0,DARK,0,0,0); C(rot,0.1,0.1,0.1,GOLD,0,0.03,0); g.add(rot); g.userData.spin.push({m:rot,ax:'y',sp:20}); C(g,0.06,0.06,1.5,STEEL,0.4,-0.42,0.1,{rx:Math.PI/2,seg:8}); C(g,0.06,0.06,1.5,STEEL,-0.4,-0.42,0.1,{rx:Math.PI/2,seg:8}); g.scale.setScalar(RS*0.8); return g; }
+  function vehTank(){ const g=new THREE.Group(); g.userData.spin=[]; B(g,1.25,0.5,1.9,GREEN,0,0.35,0,{me:0.35,ro:0.7}); B(g,1.2,0.36,0.7,GREEN,0,0.5,0.85,{rx:0.32,me:0.35}); B(g,0.75,0.42,0.75,0x3c7a3c,0,0.78,-0.1,{me:0.35}); C(g,0.1,0.1,1.5,DARK,0,0.78,0.8,{rx:Math.PI/2,seg:10}); C(g,0.14,0.14,0.2,DARK,0,0.78,1.5,{rx:Math.PI/2}); B(g,0.34,0.5,2.0,DARK,0.62,0.28,0,{ro:0.9}); B(g,0.34,0.5,2.0,DARK,-0.62,0.28,0,{ro:0.9}); [[0.62,0.6],[0.62,-0.6],[-0.62,0.6],[-0.62,-0.6]].forEach(([x,z])=>{ const geo=new THREE.CylinderGeometry(0.24,0.24,0.14,10); geo.rotateZ(Math.PI/2); const w=new THREE.Mesh(geo,M(STEEL,{me:0.5})); w.position.set(x,0.16,z); w.castShadow=true; g.add(w); }); g.scale.setScalar(RS*0.8); return g; }
+  function vehDrill(){ const g=new THREE.Group(); g.userData.spin=[]; B(g,1.05,0.6,1.6,ORANGE,0,0.4,-0.1,{me:0.4}); const geo=new THREE.ConeGeometry(0.42,1.4,12); geo.rotateX(Math.PI/2); const dr=new THREE.Mesh(geo,M(STEEL,{me:0.7,ro:0.35})); dr.position.set(0,0.4,1.35); dr.castShadow=true; g.add(dr); g.userData.spin.push({m:dr,ax:'z',sp:11}); C(g,0.44,0.44,0.3,DARK,0,0.4,0.55,{rx:Math.PI/2,seg:12}); B(g,0.55,0.42,0.6,GLASS,0,0.72,-0.4,glassO); B(g,0.32,0.6,1.5,DARK,0.56,0.3,-0.1,{ro:0.9}); B(g,0.32,0.6,1.5,DARK,-0.56,0.3,-0.1,{ro:0.9}); CO(g,0.18,0.42,CYAN,0,0.4,-1.05,glowO(CYAN)); g.scale.setScalar(RS*0.8); return g; }
   const VEH=[vehCommand,vehJet,vehGunship,vehTank,vehDrill];
-  const planes = PART.map((pt,i)=>{ const g=VEH[i](); scene.add(g); return { g, pt, from:new THREE.Vector3(), to:new THREE.Vector3(), fromQ:new THREE.Quaternion(), toQ:new THREE.Quaternion(), fromS:1, toS:1 }; });
+  // air/ground + 홈 배치(지상 차량은 땅에)
+  const VMETA=[ {air:true, home:new THREE.Vector3(0,SY+4,-6), s:RS*0.85}, {air:true, home:new THREE.Vector3(-12,SY+3,2), s:RS*0.78}, {air:true, home:new THREE.Vector3(12,SY+3,2), s:RS*0.8}, {air:false, home:new THREE.Vector3(-7,0,14), s:RS*0.8}, {air:false, home:new THREE.Vector3(7,0,14), s:RS*0.8} ];
+  const planes=PART.map((pt,i)=>{ const g=VEH[i](); const meta=VMETA[i]; g.position.copy(meta.home); g.scale.setScalar(meta.s); scene.add(g); return { g, pt, air:meta.air, home:meta.home.clone(), heading:Math.PI, from:new THREE.Vector3(), to:new THREE.Vector3(), fromQ:new THREE.Quaternion(), toQ:new THREE.Quaternion(), fromS:meta.s, toS:meta.s, baseS:meta.s }; });
+  function idlePose(p,i,t){ // 비행/지상 아이들
+    if(p.air){ p.g.position.set(p.home.x, p.home.y+Math.sin(t*1.2+i)*0.5, p.home.z); }
+    else { p.g.position.set(p.home.x, p.home.y, p.home.z); }
+    p.g.rotation.set(0, p.heading + (p.air?Math.sin(t*0.5+i)*0.15:0), 0);
+    p.g.scale.setScalar(p.baseS);
+  }
 
-  function orbitPose(i, t){ const ang=t*0.32+i*(6.283/5), R=15, H=SY+10; const pos=new THREE.Vector3(Math.cos(ang)*R, H+Math.sin(t*1.3+i)*0.8, Math.sin(ang)*R);
-    const dir=new THREE.Vector3(-Math.sin(ang),0,Math.cos(ang)).normalize(); const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), dir); q.premultiply(new THREE.Quaternion().setFromAxisAngle(dir,0.32)); return { pos, q }; }
-
-  // === 히어로 로봇 (물리 박스 + 디테일 비주얼) ===
   function partVisual(name){ const g=new THREE.Group();
-    if(name==='torso'){ B(g,1.0,1.0,0.56,RED,0,0,0); B(g,1.12,0.28,0.62,GOLD,0,0.55,0); B(g,0.34,0.34,0.12,DARK,0,0.12,0.3); B(g,0.22,0.22,0.08,CYAN,0,0.12,0.35,glowO(CYAN));
-      B(g,0.72,0.5,0.5,STEEL,0,-0.62,0); B(g,0.16,0.5,0.52,DARK,0.55,-0.1,0); B(g,0.16,0.5,0.52,DARK,-0.55,-0.1,0);
-      B(g,0.5,0.32,0.5,RED,0.62,0.46,0); B(g,0.5,0.32,0.5,RED,-0.62,0.46,0); B(g,0.54,0.12,0.54,GOLD,0.62,0.64,0); B(g,0.54,0.12,0.54,GOLD,-0.62,0.64,0); }
-    else if(name==='head'){ B(g,0.44,0.4,0.42,WHITE,0,0,0); B(g,0.34,0.14,0.36,STEEL,0,-0.22,0.02); B(g,0.46,0.14,0.12,DARK,0,0.02,0.18); B(g,0.4,0.09,0.06,CYAN,0,0.02,0.24,glowO(CYAN));
-      B(g,0.24,0.08,0.1,GOLD,0,0.26,0.16,{rz:0.5}); B(g,0.24,0.08,0.1,GOLD,0,0.26,0.16,{rz:-0.5}); B(g,0.09,0.2,0.2,GOLD,0.26,0,0); B(g,0.09,0.2,0.2,GOLD,-0.26,0,0); B(g,0.1,0.26,0.14,RED,0,0.34,0.02); }
-    else if(name==='armL'||name==='armR'){ B(g,0.6,0.42,0.6,RED,0,0.5,0); B(g,0.64,0.12,0.64,GOLD,0,0.66,0); B(g,0.3,0.45,0.3,STEEL,0,0.15,0); B(g,0.34,0.14,0.34,DARK,0,-0.12,0);
-      B(g,0.4,0.5,0.4,BLUE,0,-0.45,0); B(g,0.42,0.1,0.42,GOLD,0,-0.24,0); B(g,0.42,0.32,0.42,STEEL,0,-0.82,0.02);
-      for(let k=0;k<4;k++) B(g,0.09,0.09,0.12,DARK,-0.14+k*0.09,-0.82,0.24); }
-    else { B(g,0.42,0.3,0.42,RED,0,0.55,0); B(g,0.4,0.5,0.4,STEEL,0,0.2,0); B(g,0.44,0.2,0.44,GOLD,0,-0.12,0); B(g,0.46,0.55,0.44,WHITE,0,-0.5,0);
-      B(g,0.2,0.3,0.1,DARK,0,-0.5,0.24); B(g,0.5,0.24,0.82,DARK,0,-0.86,0.18); B(g,0.5,0.12,0.2,STEEL,0,-0.9,0.5); }
+    if(name==='torso'){ B(g,1.0,1.0,0.56,RED,0,0,0); B(g,1.12,0.28,0.62,GOLD,0,0.55,0); B(g,0.34,0.34,0.12,DARK,0,0.12,0.3); B(g,0.22,0.22,0.08,CYAN,0,0.12,0.35,glowO(CYAN)); B(g,0.72,0.5,0.5,STEEL,0,-0.62,0); B(g,0.16,0.5,0.52,DARK,0.55,-0.1,0); B(g,0.16,0.5,0.52,DARK,-0.55,-0.1,0); B(g,0.5,0.32,0.5,RED,0.62,0.46,0); B(g,0.5,0.32,0.5,RED,-0.62,0.46,0); B(g,0.54,0.12,0.54,GOLD,0.62,0.64,0); B(g,0.54,0.12,0.54,GOLD,-0.62,0.64,0); }
+    else if(name==='head'){ B(g,0.44,0.4,0.42,WHITE,0,0,0); B(g,0.34,0.14,0.36,STEEL,0,-0.22,0.02); B(g,0.46,0.14,0.12,DARK,0,0.02,0.18); B(g,0.4,0.09,0.06,CYAN,0,0.02,0.24,glowO(CYAN)); B(g,0.24,0.08,0.1,GOLD,0,0.26,0.16,{rz:0.5}); B(g,0.24,0.08,0.1,GOLD,0,0.26,0.16,{rz:-0.5}); B(g,0.09,0.2,0.2,GOLD,0.26,0,0); B(g,0.09,0.2,0.2,GOLD,-0.26,0,0); B(g,0.1,0.26,0.14,RED,0,0.34,0.02); }
+    else if(name==='armL'||name==='armR'){ B(g,0.6,0.42,0.6,RED,0,0.5,0); B(g,0.64,0.12,0.64,GOLD,0,0.66,0); B(g,0.3,0.45,0.3,STEEL,0,0.15,0); B(g,0.34,0.14,0.34,DARK,0,-0.12,0); B(g,0.4,0.5,0.4,BLUE,0,-0.45,0); B(g,0.42,0.1,0.42,GOLD,0,-0.24,0); B(g,0.42,0.32,0.42,STEEL,0,-0.82,0.02); for(let k=0;k<4;k++)B(g,0.09,0.09,0.12,DARK,-0.14+k*0.09,-0.82,0.24); }
+    else { B(g,0.42,0.3,0.42,RED,0,0.55,0); B(g,0.4,0.5,0.4,STEEL,0,0.2,0); B(g,0.44,0.2,0.44,GOLD,0,-0.12,0); B(g,0.46,0.55,0.44,WHITE,0,-0.5,0); B(g,0.2,0.3,0.1,DARK,0,-0.5,0.24); B(g,0.5,0.24,0.82,DARK,0,-0.86,0.18); B(g,0.5,0.12,0.2,STEEL,0,-0.9,0.5); }
     g.scale.setScalar(RS); return g; }
-
   const meshes=[]; const hinges={}; let torso=null,head2=null,armL=null,armR=null,legL=null,legR=null;
-  function makePart(name,hx,hy,hz,mass,pos){ const body=new CANNON.Body({ mass:mass*RS*RS*RS, material:matFoot, position:new CANNON.Vec3(pos.x,pos.y,pos.z), collisionFilterGroup:ROBOT, collisionFilterMask:GROUND|BUILDING, linearDamping:0.02, angularDamping:0.08 });
-    body.addShape(new CANNON.Box(new CANNON.Vec3(hx*RS,hy*RS,hz*RS))); world.addBody(body); const vis=partVisual(name); scene.add(vis); meshes.push({body,mesh:vis}); return body; }
-  function buildRobot(){ torso=makePart('torso',0.5,0.6,0.3,6,{x:0,y:SY,z:0}); head2=makePart('head',0.26,0.26,0.26,1.0,{x:0,y:SY+1.0*RS,z:0});
-    armL=makePart('armL',0.18,0.55,0.18,1.2,{x:-0.75*RS,y:SY+0.1*RS,z:0}); armR=makePart('armR',0.18,0.55,0.18,1.2,{x:0.75*RS,y:SY+0.1*RS,z:0});
-    legL=makePart('legL',0.22,0.62,0.22,2.2,{x:-0.26*RS,y:SY-1.1*RS,z:0}); legR=makePart('legR',0.22,0.62,0.22,2.2,{x:0.26*RS,y:SY-1.1*RS,z:0});
+  function makePart(name,hx,hy,hz,mass,pos){ const body=new CANNON.Body({mass:mass*RS*RS*RS,material:matFoot,position:new CANNON.Vec3(pos.x,pos.y,pos.z),collisionFilterGroup:ROBOT,collisionFilterMask:GROUND|BUILDING,linearDamping:0.02,angularDamping:0.08}); body.addShape(new CANNON.Box(new CANNON.Vec3(hx*RS,hy*RS,hz*RS))); world.addBody(body); const vis=partVisual(name); scene.add(vis); meshes.push({body,mesh:vis}); return body; }
+  function buildRobot(){ torso=makePart('torso',0.5,0.6,0.3,6,{x:0,y:SY,z:0}); head2=makePart('head',0.26,0.26,0.26,1.0,{x:0,y:SY+1.0*RS,z:0}); armL=makePart('armL',0.18,0.55,0.18,1.2,{x:-0.75*RS,y:SY+0.1*RS,z:0}); armR=makePart('armR',0.18,0.55,0.18,1.2,{x:0.75*RS,y:SY+0.1*RS,z:0}); legL=makePart('legL',0.22,0.62,0.22,2.2,{x:-0.26*RS,y:SY-1.1*RS,z:0}); legR=makePart('legR',0.22,0.62,0.22,2.2,{x:0.26*RS,y:SY-1.1*RS,z:0});
     const X=new CANNON.Vec3(1,0,0), V=(a,b,c)=>new CANNON.Vec3(a*RS,b*RS,c*RS);
-    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:V(0,0.6,0),pivotB:V(0,-0.26,0),axisA:X,axisB:X,maxForce:1e7});
-    hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:V(-0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7});
-    hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:V(0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7});
-    hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:V(-0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
-    hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:V(0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
+    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:V(0,0.6,0),pivotB:V(0,-0.26,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:V(-0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:V(0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:V(-0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:V(0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
     for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power*RS*RS); } }
   function destroyRobot(){ for(const k in hinges){ world.removeConstraint(hinges[k]); delete hinges[k]; } for(const {body,mesh} of meshes){ world.removeBody(body); scene.remove(mesh); } meshes.length=0; torso=head2=armL=armR=legL=legR=null; }
   function resetRobot(){ if(!torso) return; const parts=[[torso,0,SY,0],[head2,0,SY+1.0*RS,0],[armL,-0.75*RS,SY+0.1*RS,0],[armR,0.75*RS,SY+0.1*RS,0],[legL,-0.26*RS,SY-1.1*RS,0],[legR,0.26*RS,SY-1.1*RS,0]]; for(const [b,x,y,z] of parts){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); } }
 
-  // 상태 기계
-  let state='apart'; let cP=0; const DUR=2.0;
-  const stEl=document.getElementById('st'), combineBtn=document.getElementById('combineBtn');
-  function labelBtn(){ combineBtn.textContent=(state==='combined'||state==='combining')?'분 리':'합 체'; }
-  function startCombine(){ if(state!=='apart') return; for(const p of planes){ p.from.copy(p.g.position); p.fromQ.copy(p.g.quaternion); p.fromS=p.g.scale.x; p.to.copy(p.pt.slot); p.toQ.copy(slotQuat); p.toS=RS*0.55; p.g.visible=true; } cP=0; state='combining'; labelBtn(); }
-  function finishCombine(){ buildRobot(); for(const p of planes) p.g.visible=false; state='combined'; stEl.textContent='합체 완료'; labelBtn(); }
-  function startSeparate(){ if(state!=='combined') return; destroyRobot(); for(let i=0;i<planes.length;i++){ const p=planes[i]; p.g.position.copy(p.pt.slot); p.g.quaternion.copy(slotQuat); p.g.scale.setScalar(RS*0.55); p.g.visible=true; const op=orbitPose(i,tGlobal); p.from.copy(p.pt.slot); p.fromQ.copy(slotQuat); p.fromS=RS*0.55; p.to.copy(op.pos); p.toQ.copy(op.q); p.toS=VEHS(i); } cP=1; state='separating'; labelBtn(); }
-  function VEHS(i){ return [RS*0.85,RS*0.78,RS*0.8,RS*0.8,RS*0.8][i]; }
-  function toggleCombine(){ if(state==='apart') startCombine(); else if(state==='combined') startSeparate(); }
-  combineBtn.addEventListener('click', toggleCombine); window.__combine=startCombine; window.__separate=startSeparate; window.__state=()=>state;
+  // === 상태: human | piloting | combining | combined | separating ===
+  let state='human', playerIdx=-1, nearIdx=-1, cP=0; const DUR=2.0;
+  const stEl=document.getElementById('st'), ctxBtn=document.getElementById('ctxBtn'), exitBtn=document.getElementById('exitBtn'), movePad=document.getElementById('movePad'), limbPad=document.getElementById('pad'), stagehint=document.getElementById('stagehint');
+  function updateUI(){ const combined=(state==='combined'||state==='combining'); limbPad.style.display=combined?'flex':'none'; movePad.style.display=(state==='human'||state==='piloting')?'flex':'none'; exitBtn.style.display=(state==='piloting')?'block':'none';
+    ctxBtn.style.display=(state==='separating')?'none':'block';
+    if(state==='human'){ ctxBtn.textContent='탑 승'; ctxBtn.disabled=(nearIdx<0); stEl.textContent='인간'; stagehint.textContent='탈것 옆에서 탑승'; }
+    else if(state==='piloting'){ ctxBtn.textContent='합 체'; ctxBtn.disabled=false; stEl.textContent='탈것 조종'; stagehint.textContent='조종해서 합체'; }
+    else if(combined){ ctxBtn.textContent='분 리'; ctxBtn.disabled=false; stagehint.textContent='합체 로봇'; } }
+  function boardNearest(){ if(state!=='human'||nearIdx<0) return; playerIdx=nearIdx; state='piloting'; human.visible=false; updateUI(); }
+  function exitVehicle(){ if(state!=='piloting') return; const v=planes[playerIdx]; human.position.set(v.g.position.x, 0, v.g.position.z+ (v.air?0:2)); heading=v.heading; human.visible=true; playerIdx=-1; state='human'; updateUI(); }
+  function startCombine(){ if(state!=='piloting') return; for(const p of planes){ p.from.copy(p.g.position); p.fromQ.copy(p.g.quaternion); p.fromS=p.g.scale.x; p.to.copy(p.pt.slot); p.toQ.copy(slotQuat); p.toS=RS*0.55; p.g.visible=true; } cP=0; state='combining'; updateUI(); }
+  function finishCombine(){ buildRobot(); for(const p of planes) p.g.visible=false; state='combined'; stEl.textContent='합체 완료'; updateUI(); }
+  function startSeparate(){ if(state!=='combined') return; destroyRobot(); for(let i=0;i<planes.length;i++){ const p=planes[i]; p.g.position.copy(p.pt.slot); p.g.quaternion.copy(slotQuat); p.g.scale.setScalar(RS*0.55); p.g.visible=true; p.from.copy(p.pt.slot); p.fromQ.copy(slotQuat); p.fromS=RS*0.55; const hp=p.air?p.home.y:p.home.y; p.to.set(p.home.x,hp,p.home.z); p.toQ.setFromEuler(new THREE.Euler(0,p.heading,0)); p.toS=p.baseS; } cP=1; state='separating'; updateUI(); }
+  function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
+  ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);
+  window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx;
 
   const down={};
-  addEventListener('keydown', e=>{ const k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(k===' '){ e.preventDefault(); toggleCombine(); } if(['arrowleft','arrowright'].includes(k)) e.preventDefault(); });
+  addEventListener('keydown', e=>{ let k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(k==='e'){ if(state==='human') boardNearest(); else if(state==='piloting') exitVehicle(); } if(k===' '){ e.preventDefault(); if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); } if(k.startsWith('arrow')) e.preventDefault(); });
   addEventListener('keyup', e=>{ down[e.key.toLowerCase()]=false; });
-  document.querySelectorAll('#pad button[data-key]').forEach(b=>{ const key=b.getAttribute('data-key'); const on=e=>{e.preventDefault();down[key]=true;}; const off=e=>{if(e)e.preventDefault();down[key]=false;}; b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off); b.addEventListener('touchcancel',off); b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off); });
+  function bindPad(sel){ document.querySelectorAll(sel).forEach(b=>{ const key=b.getAttribute('data-key'); const on=e=>{e.preventDefault();down[key]=true;}; const off=e=>{if(e)e.preventDefault();down[key]=false;}; b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off); b.addEventListener('touchcancel',off); b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off); }); }
+  bindPad('#pad button[data-key]'); bindPad('#movePad button[data-key]');
   document.getElementById('btnReset').addEventListener('click',()=>resetRobot());
-  let camMode=0; const camNames=['전경','와이드','로봇']; document.getElementById('camBtn').addEventListener('click', function(){ camMode=(camMode+1)%3; this.textContent='시점: '+camNames[camMode]; });
+  let camMode=0; const camNames=['추적','와이드','근접']; document.getElementById('camBtn').addEventListener('click', function(){ camMode=(camMode+1)%3; this.textContent='시점: '+camNames[camMode]; });
 
   function motorFor(name,pk,mk){ if(!hinges[name]) return; const s=(down[pk]?1:0)-(down[mk]?1:0); hinges[name].setMotorSpeed(s*P.speed); hinges[name].setMotorMaxForce(P.power*RS*RS); }
   const worldUp=new CANNON.Vec3(0,1,0), bUp=new CANNON.Vec3();
   function balance(){ if(!torso) return; torso.quaternion.vmult(worldUp,bUp); const ax=bUp.cross(worldUp); const a=P.balance; torso.angularVelocity.x+=ax.x*a/60; torso.angularVelocity.z+=ax.z*a/60; torso.angularVelocity.x*=0.97; torso.angularVelocity.z*=0.97; }
-  const ease=x=> x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2;
+  const ease=x=> x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+  const HSPD=6, TURN=2.2, VSPD_A=16, VSPD_G=11;
+  updateUI();
+  let last=performance.now(), tG=0;
+  function frame(now){ const dt=Math.min((now-last)/1000,1/30); last=now; tG+=dt;
+    // 스핀(로터/드릴)
+    if(state!=='combined'){ for(const p of planes){ if(!p.g.visible) continue; const sp=p.g.userData.spin; if(sp) for(const s of sp) s.m.rotation[s.ax]+=s.sp*dt; } }
 
-  let last=performance.now(), tGlobal=0; labelBtn();
-  function frame(now){ const dt=Math.min((now-last)/1000,1/30); last=now; tGlobal+=dt;
-    // 탈것 스핀(로터/드릴/바퀴)
-    if(state!=='combined'){ for(const p of planes){ if(!p.g.visible) continue; const sp=p.g.userData.spin; if(sp) for(const s of sp){ s.m.rotation[s.ax]+=s.sp*dt; } } }
-    if(state==='apart'){ for(let i=0;i<planes.length;i++){ const op=orbitPose(i,tGlobal); planes[i].g.position.copy(op.pos); planes[i].g.quaternion.copy(op.q); planes[i].g.scale.setScalar(VEHS(i)); } }
+    if(state==='human'){
+      let mv=(down['arrowup']||down['w']?1:0)-(down['arrowdown']||down['s']?1:0); let tr=(down['arrowleft']||down['a']?1:0)-(down['arrowright']||down['d']?1:0);
+      heading+=tr*TURN*dt; human.position.x+=Math.sin(heading)*mv*HSPD*dt; human.position.z+=Math.cos(heading)*mv*HSPD*dt; human.rotation.y=heading;
+      // 근접 탈것 탐색
+      let best=-1,bd=1e9; for(let i=0;i<planes.length;i++){ const dx=planes[i].g.position.x-human.position.x, dz=planes[i].g.position.z-human.position.z; const d=dx*dx+dz*dz; if(d<bd){bd=d;best=i;} } nearIdx=(bd<7*7)?best:-1;
+      const dis=(nearIdx<0); if(ctxBtn.disabled!==dis){ ctxBtn.disabled=dis; }
+      for(let i=0;i<planes.length;i++) idlePose(planes[i],i,tG);
+    }
+    else if(state==='piloting'){
+      const v=planes[playerIdx]; let mv=(down['arrowup']||down['w']?1:0)-(down['arrowdown']||down['s']?1:0); let tr=(down['arrowleft']||down['a']?1:0)-(down['arrowright']||down['d']?1:0);
+      v.heading+=tr*TURN*dt; const spd=v.air?VSPD_A:VSPD_G; v.g.position.x+=Math.sin(v.heading)*mv*spd*dt; v.g.position.z+=Math.cos(v.heading)*mv*spd*dt; v.g.position.y=v.air?(v.home.y+Math.sin(tG*2)*0.3):v.home.y; v.g.rotation.set(0,v.heading,0); v.g.scale.setScalar(v.baseS);
+      for(let i=0;i<planes.length;i++){ if(i!==playerIdx) idlePose(planes[i],i,tG); }
+    }
     else if(state==='combining'){ cP=Math.min(1,cP+dt/DUR); const e=ease(cP); for(const p of planes){ p.g.position.lerpVectors(p.from,p.to,e); p.g.quaternion.copy(p.fromQ).slerp(p.toQ,e); p.g.scale.setScalar(p.fromS+(p.toS-p.fromS)*e); } if(cP>=1) finishCombine(); }
-    else if(state==='separating'){ cP=Math.max(0,cP-dt/DUR); const e=ease(cP); for(const p of planes){ p.g.position.lerpVectors(p.to,p.from,1-e); p.g.quaternion.copy(p.toQ).slerp(p.fromQ,1-e); p.g.scale.setScalar(p.toS+(p.fromS-p.toS)*(1-e)); } if(cP<=0){ state='apart'; stEl.textContent='비행 중'; labelBtn(); } }
+    else if(state==='separating'){ cP=Math.max(0,cP-dt/DUR); const e=ease(cP); for(const p of planes){ p.g.position.lerpVectors(p.to,p.from,1-e); p.g.quaternion.copy(p.toQ).slerp(p.fromQ,1-e); p.g.scale.setScalar(p.toS+(p.fromS-p.toS)*(1-e)); } if(cP<=0){ state='piloting'; updateUI(); } }
 
-    if(state==='combined'){ motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.'); const hs=(down['arrowright']?1:0)-(down['arrowleft']?1:0); if(hinges.head){ hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power*RS*RS); } balance(); const st=(head2.position.y-torso.position.y)/RS; stEl.textContent= st<0.35?'넘어짐':'합체·서있음'; }
+    if(state==='combined'){ motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.'); const hs=(down['headr']?1:0)-(down['headl']?1:0)+(down['arrowright']?1:0)-(down['arrowleft']?1:0); if(hinges.head){ hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power*RS*RS); } balance(); const st=(head2.position.y-torso.position.y)/RS; stEl.textContent=st<0.35?'넘어짐':'합체·서있음'; }
 
     world.step(1/60, dt, 3);
     for(const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
     for(let i=debris.length-1;i>=0;i--){ const d0=debris[i]; d0.mesh.position.copy(d0.body.position); d0.mesh.quaternion.copy(d0.body.quaternion); d0.life-=dt; if(d0.life<0){ scene.remove(d0.mesh); world.removeBody(d0.body); debris.splice(i,1); } }
-    monster.position.y=Math.sin(tGlobal*1.3)*0.25; monster.rotation.y=Math.sin(tGlobal*0.4)*0.1;
-    const mp=monster.position; for(const pe of people){ const g=pe.g; g.position.y=Math.abs(Math.sin(tGlobal*6+pe.phase))*0.06; if(pe.flee){ const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1; g.position.x+=dx/L*dt*1.8; g.position.z+=dz/L*dt*1.8; g.rotation.y=Math.atan2(dx,dz); if(L>70){ const a=Math.random()*6.28,r=5+Math.random()*9; g.position.x=Math.cos(a)*r; g.position.z=9+Math.sin(a)*r; } } else g.rotation.y=Math.sin(tGlobal*0.8+pe.phase)*0.6; }
+    monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1;
+    const mp=monster.position; for(const pe of people){ const g=pe.g; g.position.y=Math.abs(Math.sin(tG*6+pe.phase))*0.06; const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1; g.position.x+=dx/L*dt*1.6; g.position.z+=dz/L*dt*1.6; g.rotation.y=Math.atan2(dx,dz); if(L>75){ const a=Math.random()*6.28,r=6+Math.random()*9; g.position.x=Math.cos(a)*r; g.position.z=10+Math.sin(a)*r; } }
 
-    const focus = torso ? torso.position : new THREE.Vector3(0,SY,0); let desired,look;
-    if(camMode===0){ const up=state==='combined'?6:14; desired=new THREE.Vector3(focus.x+6,20,focus.z+33); look=new THREE.Vector3(focus.x,up,focus.z-10); }
-    else if(camMode===1){ desired=new THREE.Vector3(24,52,80); look=new THREE.Vector3(2,7,-14); }
-    else { desired=new THREE.Vector3(focus.x+7,focus.y+6,focus.z+15); look=new THREE.Vector3(focus.x,focus.y+1,focus.z); }
-    camera.position.lerp(desired, camMode===1?0.04:0.06); camera.lookAt(look);
+    // 카메라
+    let foc, hd;
+    if(state==='combined'){ foc=torso.position; hd=null; }
+    else if(state==='piloting'||state==='separating'){ const v=planes[playerIdx>=0?playerIdx:0]; foc=v.g.position; hd=v.heading; }
+    else { foc=human.position; hd=heading; }
+    let desired, look;
+    if(camMode===1){ desired=new THREE.Vector3(24,52,80); look=new THREE.Vector3(2,7,-14); }
+    else if(state==='combined'){ const up=6; desired=new THREE.Vector3(foc.x+6,20,foc.z+ (camMode===2?15:33)); look=new THREE.Vector3(foc.x,up,foc.z-10); }
+    else { const dist=(state==='piloting')?14:6, hgt=(state==='piloting')?(planes[playerIdx>=0?playerIdx:0].air?7:4):3.2; desired=new THREE.Vector3(foc.x-Math.sin(hd)*dist, foc.y+hgt, foc.z-Math.cos(hd)*dist); look=new THREE.Vector3(foc.x,foc.y+1,foc.z); }
+    camera.position.lerp(desired, camMode===1?0.04:0.08); camera.lookAt(look);
     renderer.render(scene,camera); requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
 })();

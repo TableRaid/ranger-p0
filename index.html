@@ -43,6 +43,17 @@
 
 <button id="camBtn">시점: 추적</button>
 <div id="status" class="panel">상태: <b id="st">인간</b> · 부순 건물 <b id="wrecked">0</b></div>
+<div id="hpbars" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:none;width:min(520px,86vw);">
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:#cfe0ff;margin-bottom:2px;"><span>합체 로봇</span><span>괴수</span></div>
+  <div style="display:flex;gap:10px;">
+    <div style="flex:1;height:14px;background:rgba(0,0,0,.5);border:1px solid #2a3a5c;border-radius:7px;overflow:hidden;"><div id="hpRobot" style="height:100%;width:100%;background:linear-gradient(90deg,#37d67a,#7ef0a8);"></div></div>
+    <div style="flex:1;height:14px;background:rgba(0,0,0,.5);border:1px solid #5c2a2a;border-radius:7px;overflow:hidden;"><div id="hpMon" style="height:100%;width:100%;background:linear-gradient(270deg,#e0424b,#ff8088);margin-left:auto;"></div></div>
+  </div>
+</div>
+<div id="result" style="position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(6,8,14,.55);">
+  <div id="resultText" style="font-size:44px;font-weight:900;letter-spacing:4px;text-shadow:0 4px 20px rgba(0,0,0,.6);"></div>
+  <button id="resultBtn" style="margin-top:16px;font-size:15px;font-weight:700;color:#101018;background:linear-gradient(180deg,#ffd76a,#ff9d3c);border:none;border-radius:10px;padding:10px 22px;">다시</button>
+</div>
 <button id="exitBtn">하차</button>
 <button id="ctxBtn">탑 승</button>
 
@@ -255,14 +266,36 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     else if(name==='armL'||name==='armR'){ B(g,0.6,0.42,0.6,RED,0,0.5,0); B(g,0.64,0.12,0.64,GOLD,0,0.66,0); B(g,0.3,0.45,0.3,STEEL,0,0.15,0); B(g,0.34,0.14,0.34,DARK,0,-0.12,0); B(g,0.4,0.5,0.4,BLUE,0,-0.45,0); B(g,0.42,0.1,0.42,GOLD,0,-0.24,0); B(g,0.42,0.32,0.42,STEEL,0,-0.82,0.02); for(let k=0;k<4;k++)B(g,0.09,0.09,0.12,DARK,-0.14+k*0.09,-0.82,0.24); }
     else { B(g,0.42,0.3,0.42,RED,0,0.55,0); B(g,0.4,0.5,0.4,STEEL,0,0.2,0); B(g,0.44,0.2,0.44,GOLD,0,-0.12,0); B(g,0.46,0.55,0.44,WHITE,0,-0.5,0); B(g,0.2,0.3,0.1,DARK,0,-0.5,0.24); B(g,0.5,0.24,0.82,DARK,0,-0.86,0.18); B(g,0.5,0.12,0.2,STEEL,0,-0.9,0.5); }
     g.scale.setScalar(RS); return g; }
+  // 탈것 기수(+z) -> 팔다리 방향 오프셋
+  const OFF_UP=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(0,1,0));
+  const OFF_DN=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(0,-1,0));
   const meshes=[]; const hinges={}; let torso=null,head2=null,armL=null,armR=null,legL=null,legR=null;
-  function makePart(name,hx,hy,hz,mass,pos){ const body=new CANNON.Body({mass:mass*RS*RS*RS,material:matFoot,position:new CANNON.Vec3(pos.x,pos.y,pos.z),collisionFilterGroup:ROBOT,collisionFilterMask:GROUND|BUILDING,linearDamping:0.02,angularDamping:0.08}); body.addShape(new CANNON.Box(new CANNON.Vec3(hx*RS,hy*RS,hz*RS))); world.addBody(body); const vis=partVisual(name); scene.add(vis); meshes.push({body,mesh:vis}); return body; }
-  function buildRobot(){ torso=makePart('torso',0.5,0.6,0.3,6,{x:0,y:SY,z:0}); head2=makePart('head',0.26,0.26,0.26,1.0,{x:0,y:SY+1.0*RS,z:0}); armL=makePart('armL',0.18,0.55,0.18,1.2,{x:-0.75*RS,y:SY+0.1*RS,z:0}); armR=makePart('armR',0.18,0.55,0.18,1.2,{x:0.75*RS,y:SY+0.1*RS,z:0}); legL=makePart('legL',0.22,0.62,0.22,2.2,{x:-0.26*RS,y:SY-1.1*RS,z:0}); legR=makePart('legR',0.22,0.62,0.22,2.2,{x:0.26*RS,y:SY-1.1*RS,z:0});
-    const X=new CANNON.Vec3(1,0,0), V=(a,b,c)=>new CANNON.Vec3(a*RS,b*RS,c*RS);
-    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:V(0,0.6,0),pivotB:V(0,-0.26,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:V(-0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:V(0.5,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:V(-0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:V(0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
-    for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power*RS*RS); } }
-  function destroyRobot(){ for(const k in hinges){ world.removeConstraint(hinges[k]); delete hinges[k]; } for(const {body,mesh} of meshes){ world.removeBody(body); scene.remove(mesh); } meshes.length=0; torso=head2=armL=armR=legL=legR=null; }
-  function resetRobot(){ if(!torso) return; const parts=[[torso,0,SY,0],[head2,0,SY+1.0*RS,0],[armL,-0.75*RS,SY+0.1*RS,0],[armR,0.75*RS,SY+0.1*RS,0],[legL,-0.26*RS,SY-1.1*RS,0],[legR,0.26*RS,SY-1.1*RS,0]]; for(const [b,x,y,z] of parts){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); } }
+  let docking=false, jointsOn=false; const dockList=[]; const _q=new THREE.Quaternion();
+  function mkBody(hx,hy,hz,mass,pos,mask){ const body=new CANNON.Body({mass:mass*RS*RS*RS,material:matFoot,position:new CANNON.Vec3(pos.x,pos.y,pos.z),collisionFilterGroup:ROBOT,collisionFilterMask:mask,linearDamping:0.08,angularDamping:0.3}); body.addShape(new CANNON.Box(new CANNON.Vec3(hx*RS,hy*RS,hz*RS))); world.addBody(body); return body; }
+  function buildRobotFromVehicles(){ const gp=i=>planes[i].g.position;
+    torso=mkBody(0.5,0.8,0.32,7,{x:gp(0).x,y:Math.max(gp(0).y,SY),z:gp(0).z},GROUND);
+    armL=mkBody(0.24,0.62,0.24,1.3,{x:gp(1).x,y:Math.max(gp(1).y,SY),z:gp(1).z},GROUND);
+    armR=mkBody(0.24,0.62,0.24,1.3,{x:gp(2).x,y:Math.max(gp(2).y,SY),z:gp(2).z},GROUND);
+    legL=mkBody(0.26,0.68,0.26,2.4,{x:gp(3).x,y:Math.max(gp(3).y,2),z:gp(3).z},GROUND);
+    legR=mkBody(0.26,0.68,0.26,2.4,{x:gp(4).x,y:Math.max(gp(4).y,2),z:gp(4).z},GROUND);
+    head2=mkBody(0.26,0.26,0.26,1.0,{x:gp(0).x,y:Math.max(gp(0).y,SY)+1.4*RS,z:gp(0).z},GROUND);
+    const hv=partVisual('head'); scene.add(hv); meshes.length=0;
+    meshes.push({body:torso,mesh:planes[0].g,off:OFF_UP}); meshes.push({body:armL,mesh:planes[1].g,off:OFF_DN}); meshes.push({body:armR,mesh:planes[2].g,off:OFF_DN}); meshes.push({body:legL,mesh:planes[3].g,off:OFF_DN}); meshes.push({body:legR,mesh:planes[4].g,off:OFF_DN}); meshes.push({body:head2,mesh:hv,off:null});
+    planes.forEach(p=>{ p.g.visible=true; });
+    dockList.length=0;
+    dockList.push({b:torso,s:new THREE.Vector3(0,SY,0)}); dockList.push({b:armL,s:new THREE.Vector3(-0.78*RS,SY+0.2*RS,0)}); dockList.push({b:armR,s:new THREE.Vector3(0.78*RS,SY+0.2*RS,0)}); dockList.push({b:legL,s:new THREE.Vector3(-0.28*RS,SY-1.25*RS,0)}); dockList.push({b:legR,s:new THREE.Vector3(0.28*RS,SY-1.25*RS,0)}); dockList.push({b:head2,s:new THREE.Vector3(0,SY+1.15*RS,0)});
+    docking=true; jointsOn=false; }
+  function addJoints(){ const X=new CANNON.Vec3(1,0,0), V=(a,b,c)=>new CANNON.Vec3(a*RS,b*RS,c*RS);
+    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:V(0,0.8,0),pivotB:V(0,-0.26,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:V(-0.55,0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7}); hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:V(0.55,0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:V(-0.28,-0.8,0),pivotB:V(0,0.68,0),axisA:X,axisB:X,maxForce:1e7}); hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:V(0.28,-0.8,0),pivotB:V(0,0.68,0),axisA:X,axisB:X,maxForce:1e7});
+    for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power*RS*RS); }
+    [torso,armL,armR,legL,legR,head2].forEach(b=>{ b.collisionFilterMask=GROUND|BUILDING; b.linearDamping=0.02; b.angularDamping=0.09; }); jointsOn=true; }
+  function clampVel(b,m){ const v=b.velocity, s=Math.hypot(v.x,v.y,v.z); if(s>m) v.scale(m/s,v); const a=b.angularVelocity, sa=Math.hypot(a.x,a.y,a.z); if(sa>m) a.scale(m/sa,a); }
+  function dockStep(dt){ let maxd=0; for(const it of dockList){ const b=it.b; clampVel(b,28); const dx=it.s.x-b.position.x, dy=it.s.y-b.position.y, dz=it.s.z-b.position.z; const dd=Math.hypot(dx,dy,dz); if(dd>maxd)maxd=dd;
+      const kf=b.mass*20, kd=b.mass*8; b.applyForce(new CANNON.Vec3(dx*kf-b.velocity.x*kd, dy*kf-b.velocity.y*kd+b.mass*9.8, dz*kf-b.velocity.z*kd), b.position);
+      const q=b.quaternion, sgn=q.w<0?-1:1; b.angularVelocity.x+=-q.x*sgn*24*dt; b.angularVelocity.y+=-q.y*sgn*24*dt; b.angularVelocity.z+=-q.z*sgn*24*dt; b.angularVelocity.scale(0.85,b.angularVelocity); }
+    if(maxd<1.1){ addJoints(); docking=false; for(const it of dockList) it.b.velocity.set((Math.random()-0.5)*2,Math.random()*2,(Math.random()-0.5)*2); state='combined'; stEl.textContent='합체 완료'; updateUI(); startCombat(); } }
+  function destroyRobot(){ for(const k in hinges){ world.removeConstraint(hinges[k]); delete hinges[k]; } for(const it of meshes){ world.removeBody(it.body); if(it.off===null) scene.remove(it.mesh); } meshes.length=0; dockList.length=0; docking=false; jointsOn=false; torso=head2=armL=armR=legL=legR=null; }
+  function resetRobot(){ if(!torso||!jointsOn) return; const P0=[[torso,0,SY,0],[head2,0,SY+1.15*RS,0],[armL,-0.78*RS,SY+0.2*RS,0],[armR,0.78*RS,SY+0.2*RS,0],[legL,-0.28*RS,SY-1.25*RS,0],[legR,0.28*RS,SY-1.25*RS,0]]; for(const [b,x,y,z] of P0){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); } }
 
   // === 상태: human | piloting | combining | combined | separating ===
   let state='human', playerIdx=-1, nearIdx=-1, cP=0; const DUR=2.0;
@@ -274,12 +307,27 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     else if(combined){ ctxBtn.textContent='분 리'; ctxBtn.disabled=false; stagehint.textContent='합체 로봇'; } }
   function boardNearest(){ if(state!=='human'||nearIdx<0) return; playerIdx=nearIdx; state='piloting'; human.visible=false; updateUI(); }
   function exitVehicle(){ if(state!=='piloting') return; const v=planes[playerIdx]; human.position.set(v.g.position.x, 0, v.g.position.z+ (v.air?0:2)); heading=v.heading; human.visible=true; playerIdx=-1; state='human'; updateUI(); }
-  function startCombine(){ if(state!=='piloting') return; for(const p of planes){ p.from.copy(p.g.position); p.fromQ.copy(p.g.quaternion); p.fromS=p.g.scale.x; p.to.copy(p.pt.slot); p.toQ.copy(slotQuat); p.toS=RS*0.55; p.g.visible=true; } cP=0; state='combining'; updateUI(); }
-  function finishCombine(){ buildRobot(); for(const p of planes) p.g.visible=false; state='combined'; stEl.textContent='합체 완료'; updateUI(); }
-  function startSeparate(){ if(state!=='combined') return; destroyRobot(); for(let i=0;i<planes.length;i++){ const p=planes[i]; p.g.position.copy(p.pt.slot); p.g.quaternion.copy(slotQuat); p.g.scale.setScalar(RS*0.55); p.g.visible=true; p.from.copy(p.pt.slot); p.fromQ.copy(slotQuat); p.fromS=RS*0.55; const hp=p.air?p.home.y:p.home.y; p.to.set(p.home.x,hp,p.home.z); p.toQ.setFromEuler(new THREE.Euler(0,p.heading,0)); p.toS=p.baseS; } cP=1; state='separating'; updateUI(); }
+  function startCombine(){ if(state!=='piloting') return; buildRobotFromVehicles(); state='combining'; updateUI(); }
+  function startSeparate(){ if(state!=='combined'&&state!=='combining') return; endCombat(); destroyRobot(); state='piloting'; if(playerIdx<0) playerIdx=0; updateUI(); }
+  // === 전투 ===
+  let mHP=100,rHP=100,mAlive=true,mAtkCD=1.5,combatOn=false,combatOver=0; const armCD=[0,0];
+  const hpbars=document.getElementById('hpbars'), hpRobot=document.getElementById('hpRobot'), hpMon=document.getElementById('hpMon'), resultEl=document.getElementById('result'), resultText=document.getElementById('resultText'); const _fp=new THREE.Vector3();
+  function startCombat(){ mHP=100;rHP=100;mAlive=true;combatOn=true;combatOver=0;mAtkCD=1.6;armCD[0]=armCD[1]=0; hpbars.style.display='block'; hpRobot.style.width='100%'; hpMon.style.width='100%'; resultEl.style.display='none'; monster.rotation.x=0; }
+  function endCombat(){ combatOn=false; hpbars.style.display='none'; }
+  function endGame(win){ combatOver=win?1:-1; combatOn=false; resultText.textContent=win?'승  리':'패  배'; resultText.style.color=win?'#7ef0a8':'#ff8088'; resultEl.style.display='flex'; }
+  document.getElementById('resultBtn').addEventListener('click',()=>location.reload());
+  function combatStep(dt){ if(!combatOn||!torso){ if(!combatOn){ monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1; } return; }
+    const mx=monster.position.x, mz=monster.position.z, tx=torso.position.x, tz=torso.position.z; let dx=tx-mx, dz=tz-mz; const L=Math.hypot(dx,dz)||1;
+    if(mAlive){ if(L>7){ monster.position.x+=dx/L*3.4*dt; monster.position.z+=dz/L*3.4*dt; } monster.position.y=Math.sin(tG*4)*0.12; monster.rotation.y=Math.atan2(dx,dz);
+      mAtkCD-=dt; if(L<11 && mAtkCD<=0){ mAtkCD=2.0; rHP-=9; torso.velocity.x+=dx/L*3.5; torso.velocity.z+=dz/L*3.5; torso.velocity.y+=2.5; if(rHP<=0){ rHP=0; endGame(false); } }
+      // 로봇 펀치: 주먹(팔 하단)이 괴물 몸통 근처 + 팔 빠름
+      [armL,armR].forEach((arm,ai)=>{ armCD[ai]-=dt; _fp.set(arm.position.x, arm.position.y-0.7*RS, arm.position.z); const mdx=_fp.x-mx, mdy=_fp.y-(monster.position.y+5), mdz=_fp.z-mz; const md=Math.hypot(mdx,mdy,mdz); const sp=Math.hypot(arm.velocity.x,arm.velocity.y,arm.velocity.z); if(md<9 && sp>3.0 && armCD[ai]<=0){ armCD[ai]=0.4; mHP-=7; monster.position.x-=dx/L*0.8; monster.position.z-=dz/L*0.8; if(mHP<=0){ mHP=0; mAlive=false; endGame(true); } } });
+    } else { monster.rotation.x=Math.min(monster.rotation.x+dt*1.6,1.6); monster.position.y=Math.max(monster.position.y-dt*2,-2); }
+    hpRobot.style.width=Math.max(0,rHP)+'%'; hpMon.style.width=Math.max(0,mHP)+'%'; }
   function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
   ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);
   window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx; window.__info=()=>({calls:renderer.info.render.calls, tris:renderer.info.render.triangles, buildings:buildings.length});
+  window.__hp=()=>({rHP,mHP,combatOn,combatOver,state}); window.__torso=()=>torso?{x:torso.position.x,y:torso.position.y,z:torso.position.z}:null; window.__hurtMon=(n)=>{ mHP-=n; if(mHP<=0){mHP=0;mAlive=false;endGame(true);} };
 
   const down={};
   addEventListener('keydown', e=>{ let k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(k==='e'){ if(state==='human') boardNearest(); else if(state==='piloting') exitVehicle(); } if(k===' '){ e.preventDefault(); if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); } if(k.startsWith('arrow')) e.preventDefault(); });
@@ -313,25 +361,24 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
       v.heading+=tr*TURN*dt; const spd=v.air?VSPD_A:VSPD_G; v.g.position.x+=Math.sin(v.heading)*mv*spd*dt; v.g.position.z+=Math.cos(v.heading)*mv*spd*dt; v.g.position.y=v.air?(v.home.y+Math.sin(tG*2)*0.3):v.home.y; v.g.rotation.set(0,v.heading,0); v.g.scale.setScalar(v.baseS);
       for(let i=0;i<planes.length;i++){ if(i!==playerIdx) idlePose(planes[i],i,tG); }
     }
-    else if(state==='combining'){ cP=Math.min(1,cP+dt/DUR); const e=ease(cP); for(const p of planes){ p.g.position.lerpVectors(p.from,p.to,e); p.g.quaternion.copy(p.fromQ).slerp(p.toQ,e); p.g.scale.setScalar(p.fromS+(p.toS-p.fromS)*e); } if(cP>=1) finishCombine(); }
-    else if(state==='separating'){ cP=Math.max(0,cP-dt/DUR); const e=ease(cP); for(const p of planes){ p.g.position.lerpVectors(p.to,p.from,1-e); p.g.quaternion.copy(p.toQ).slerp(p.fromQ,1-e); p.g.scale.setScalar(p.toS+(p.fromS-p.toS)*(1-e)); } if(cP<=0){ state='piloting'; updateUI(); } }
+    else if(state==='combining'){ dockStep(dt); }
 
-    if(state==='combined'){ motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.'); const hs=(down['headr']?1:0)-(down['headl']?1:0)+(down['arrowright']?1:0)-(down['arrowleft']?1:0); if(hinges.head){ hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power*RS*RS); } balance(); const st=(head2.position.y-torso.position.y)/RS; stEl.textContent=st<0.35?'넘어짐':'합체·서있음'; }
+    if(state==='combined'){ motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.'); const hs=(down['headr']?1:0)-(down['headl']?1:0)+(down['arrowright']?1:0)-(down['arrowleft']?1:0); if(hinges.head){ hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power*RS*RS); } balance(); combatStep(dt); if(!combatOver){ const st=(head2.position.y-torso.position.y)/RS; stEl.textContent=st<0.35?'넘어짐':'합체·전투'; } }
 
     world.step(1/60, dt, 3);
-    for(const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
+    for(const it of meshes){ it.mesh.position.copy(it.body.position); if(it.off){ _q.copy(it.body.quaternion).multiply(it.off); it.mesh.quaternion.copy(_q); } else it.mesh.quaternion.copy(it.body.quaternion); }
     for(let i=debris.length-1;i>=0;i--){ const d0=debris[i]; d0.mesh.position.copy(d0.body.position); d0.mesh.quaternion.copy(d0.body.quaternion); d0.life-=dt; if(d0.life<0){ scene.remove(d0.mesh); world.removeBody(d0.body); debris.splice(i,1); } }
-    monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1;
+    if(state!=='combined'){ monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1; }
     updateCrowd(dt,tG,monster.position);
 
     // 카메라
     let foc, hd;
-    if(state==='combined'){ foc=torso.position; hd=null; }
+    if((state==='combined'||state==='combining')&&torso){ foc=torso.position; hd=null; }
     else if(state==='piloting'||state==='separating'){ const v=planes[playerIdx>=0?playerIdx:0]; foc=v.g.position; hd=v.heading; }
     else { foc=human.position; hd=heading; }
     let desired, look;
     if(camMode===1){ desired=new THREE.Vector3(24,52,80); look=new THREE.Vector3(2,7,-14); }
-    else if(state==='combined'){ const up=6; desired=new THREE.Vector3(foc.x+6,20,foc.z+ (camMode===2?15:33)); look=new THREE.Vector3(foc.x,up,foc.z-10); }
+    else if((state==='combined'||state==='combining')&&torso){ const up=6; desired=new THREE.Vector3(foc.x+6,20,foc.z+ (camMode===2?15:33)); look=new THREE.Vector3(foc.x,up,foc.z-10); }
     else { const pilot=(state==='piloting'); const dist=pilot?14:4, hgt=pilot?(planes[playerIdx>=0?playerIdx:0].air?7:4):2.0, ly=pilot?1:0.6; desired=new THREE.Vector3(foc.x-Math.sin(hd)*dist, foc.y+hgt, foc.z-Math.cos(hd)*dist); look=new THREE.Vector3(foc.x,foc.y+ly,foc.z); }
     camera.position.lerp(desired, camMode===1?0.04:0.08); camera.lookAt(look);
     renderer.render(scene,camera); requestAnimationFrame(frame); }

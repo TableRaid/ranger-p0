@@ -64,6 +64,7 @@
 </div>
 <div id="ehp" style="position:fixed;z-index:8;display:none;width:56px;height:5px;background:rgba(0,0,0,.65);border:1px solid #500;border-radius:3px;overflow:hidden;pointer-events:none;"><div id="ehpFill" style="height:100%;width:100%;background:#e63b3b;"></div></div>
 <div id="deathmsg" style="position:fixed;inset:0;z-index:19;display:none;align-items:center;justify-content:center;background:rgba(50,0,0,.45);font-size:30px;font-weight:900;color:#ff8a8a;text-shadow:0 3px 14px #000;letter-spacing:3px;">전사 · 리스폰…</div>
+<div id="shield" style="position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;box-shadow:inset 0 0 110px 26px rgba(70,150,255,.7);"></div>
 <div id="hpbars" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:none;width:min(520px,86vw);">
   <div style="display:flex;justify-content:space-between;font-size:11px;color:#cfe0ff;margin-bottom:2px;"><span>합체 로봇</span><span>괴수</span></div>
   <div style="display:flex;gap:10px;">
@@ -273,8 +274,8 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   // === CoD식 FPS 감각 ===
   const muzzle=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.24,7), M(0xffe08a,{em:0xffcf5a,ei:4,ro:0.3})); muzzle.rotation.x=-Math.PI/2; muzzle.position.set(0,0.02,-0.62); muzzle.visible=false; gunVM.add(muzzle);
   const gunRest=new THREE.Vector3(0.16,-0.15,-0.42), gunADS=new THREE.Vector3(0,-0.075,-0.34);
-  let recoilP=0, recoilY=0, MAG=30, ammo=30, reloading=0, ads=0, adsHeld=false, hurtFlash=0, sinceHit=99, bobPhase=0, muzzleT=0, hitT=0, shake=0, gunKick=0;
-  const ammoEl=document.getElementById('ammo'), hitmarkEl=document.getElementById('hitmark'), vign=document.getElementById('vignette'), adsBtn=document.getElementById('adsBtn'), FOV0=52;
+  let recoilP=0, recoilY=0, MAG=30, ammo=30, reloading=0, ads=0, adsHeld=false, hurtFlash=0, sinceHit=99, bobPhase=0, muzzleT=0, hitT=0, shake=0, gunKick=0, spawnProt=0;
+  const ammoEl=document.getElementById('ammo'), hitmarkEl=document.getElementById('hitmark'), vign=document.getElementById('vignette'), adsBtn=document.getElementById('adsBtn'), shieldEl=document.getElementById('shield'), FOV0=52;
   function updateAmmo(){ ammoEl.innerHTML = (reloading>0?'재장전':ammo) + '<span style="font-size:13px;opacity:.65;font-weight:700;"> / '+MAG+'</span>'; }
   function reload(){ if(reloading>0||ammo>=MAG) return; reloading=1.5; snd('reload'); updateAmmo(); }
   function hitmark(head){ hitT=0.12; const c=head?'#ff4a4a':'#ffe14a'; if(hitmarkEl.children[0]){ hitmarkEl.children[0].style.background=c; hitmarkEl.children[1].style.background=c; } snd('hit'); }
@@ -296,6 +297,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     if(hitT>0){ hitT-=dt; } hitmarkEl.style.display = hitT>0?'block':'none';
     if(hurtFlash>0){ hurtFlash-=dt*1.6; } vign.style.opacity = Math.max(0,Math.min(0.8,hurtFlash));
     if(shake>0) shake-=dt*4;
+    if(spawnProt>0){ spawnProt-=dt; shieldEl.style.opacity=Math.min(0.55,spawnProt*0.4); } else shieldEl.style.opacity=0;
     // 재장전
     if(reloading>0){ reloading-=dt; if(reloading<=0){ ammo=MAG; reloading=0; updateAmmo(); } }
     // 체력 재생
@@ -384,7 +386,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function setHP(){ hpPlayerEl.style.width=Math.max(0,pHP)+'%'; hpRobot.style.width=Math.max(0,pHP)+'%'; hpMon.style.width=Math.max(0,mHP)+'%'; }
   function startCombat(){ mHP=100;pHP=100;mAlive=true;combatOn=true;combatOver=0;mAtkCD=1.6;armCD[0]=armCD[1]=0; hpbars.style.display='block'; setHP(); resultEl.style.display='none'; monster.rotation.x=0; }
   function endCombat(){ combatOn=false; hpbars.style.display='none'; }
-  function damagePlayer(n,fx,fz){ if(downT>0||combatOver) return; pHP-=n; if(pHP<0)pHP=0; setHP(); hurtFlash=0.7; sinceHit=0; shake=0.6; snd('hurt'); if(fx!==undefined) showDmgDir(fx,fz); if(pHP<=0){ if(state==='combined'&&combatOn){ endGame(false); } else { downT=2.5; deaths++; updateScore(); deathEl.style.display='flex'; } } }
+  function damagePlayer(n,fx,fz){ if(downT>0||spawnProt>0||combatOver) return; pHP-=n; if(pHP<0)pHP=0; setHP(); hurtFlash=0.7; sinceHit=0; shake=0.6; snd('hurt'); if(fx!==undefined) showDmgDir(fx,fz); if(pHP<=0){ if(state==='combined'&&combatOn){ endGame(false); } else { downT=2.5; deaths++; updateScore(); deathEl.style.display='flex'; } } }
   function endGame(win){ combatOver=win?1:-1; combatOn=false; resultText.textContent=win?'승  리':'패  배'; resultText.style.color=win?'#7ef0a8':'#ff8088'; resultEl.style.display='flex'; }
   document.getElementById('resultBtn').addEventListener('click',()=>location.reload());
   function combatStep(dt){ if(!combatOn||!torso){ if(!combatOn){ monster.position.y=Math.sin(tG*1.3)*0.25; monster.rotation.y=Math.sin(tG*0.4)*0.1; } return; }
@@ -415,13 +417,26 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function updateScore(){ scoreEl.textContent='킬 '+kills+' · 데스 '+deaths+' · 목표 '+FRAG; }
   const feedItems=[]; function addFeed(html){ const d=document.createElement('div'); d.innerHTML=html; d.style.transition='opacity .4s'; feedEl.appendChild(d); feedItems.push({el:d,t:4}); }
   let dmgDirT=0, dmgDirAng=0; function showDmgDir(fx,fz){ dmgDirAng=Math.atan2(fx-human.position.x, fz-human.position.z)-heading; dmgDirT=1.0; }
+  // 엄폐물(레벨디자인): 상자/바리케이드/벽 — 총알 차단 + 은폐
+  const covers=[];
+  function addCover(x,z,w,h,d,color){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(color,{ro:0.85,me:0.05})); m.position.set(x,h/2,z); m.castShadow=true; m.receiveShadow=true; scene.add(m); covers.push({x,z,y:h/2,hx:w/2,hy:h/2,hz:d/2}); }
+  for(let i=0;i<30;i++){ const a=Math.random()*6.28, r=7+Math.random()*38; const x=Math.cos(a)*r, z=Math.sin(a)*r; if(Math.hypot(x,z)<5) continue; const t=Math.random();
+    if(t<0.4) addCover(x,z,1.7,1.6,1.7,0x8a5a2e);
+    else if(t<0.75){ const v=Math.random()<0.5; addCover(x,z, v?0.7:3.8, 1.35, v?3.8:0.7, 0x9aa0a8); }
+    else addCover(x,z,2.2,2.6,0.7,0x8a8f9a); }
+  function segBox(ax,ay,az,bx,by,bz,cx,cy,cz,hx,hy,hz){ const dx=bx-ax,dy=by-ay,dz=bz-az; let tmin=0,tmax=1;
+    const A=[ax,ay,az],D=[dx,dy,dz],C=[cx,cy,cz],H=[hx,hy,hz];
+    for(let k=0;k<3;k++){ if(Math.abs(D[k])<1e-8){ if(A[k]<C[k]-H[k]||A[k]>C[k]+H[k]) return false; } else { let t1=(C[k]-H[k]-A[k])/D[k], t2=(C[k]+H[k]-A[k])/D[k]; if(t1>t2){const tt=t1;t1=t2;t2=tt;} if(t1>tmin)tmin=t1; if(t2<tmax)tmax=t2; if(tmin>tmax) return false; } } return true; }
+  function coverBlocks(ax,ay,az,bx,by,bz){ for(const cv of covers){ if(segBox(ax,ay,az,bx,by,bz, cv.x,cv.y,cv.z, cv.hx,cv.hy,cv.hz)) return true; } return false; }
   const botCols=[0xd23f3f,0xe0574a,0xc23a5a,0xd2603a,0xb83a4a];
   const spawnPt=()=>{ const a=Math.random()*6.28,r=24+Math.random()*55; return {x:Math.cos(a)*r,z:Math.sin(a)*r}; };
+  function spawnSafe(){ let best=null,bd=-1; for(let k=0;k<14;k++){ const s=spawnPt(); let md=1e9; for(const bt of bots){ if(!bt||!bt.alive) continue; const d=(bt.x-s.x)**2+(bt.z-s.z)**2; if(d<md)md=d; } if(md>bd){ bd=md; best=s; } } return best||{x:0,z:26}; }
   const bots=[];
   function makeBot(i){ const g=makePerson(botCols[i%botCols.length]); B(g,0.09,0.09,0.34,0x15181f,0.17,0.3,0.16,{me:0.3}); const mz=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.14,6),M(0xffe08a,{em:0xffcf5a,ei:4})); mz.rotation.x=-Math.PI/2; mz.position.set(0.17,0.3,0.36); mz.visible=false; g.add(mz); scene.add(g); const s=spawnPt(); return {g,mz,body:g.children[0],x:s.x,z:s.z,hp:100,alive:true,resp:0,fireCD:1+Math.random(),burst:0,_shots:0,mzT:0,flash:0,h:Math.random()*6.28,strafe:Math.random()<0.5?1:-1,name:botNames[i%botNames.length]}; }
   for(let i=0;i<8;i++) bots.push(makeBot(i));
+  (function(){ const s=spawnSafe(); human.position.set(s.x,0,s.z); spawnProt=3; })();
   function killBot(bot,byPlayer){ bot.alive=false; bot.g.visible=false; bot.resp=2.5+Math.random()*2; if(byPlayer){ kills++; killsEl.textContent=kills; addFeed('<span style="color:#7ef0a8">나</span> <span style="opacity:.55">▸</span> <span style="color:#ff8a8a">'+bot.name+'</span>'); updateScore(); if(kills>=FRAG) endGame(true); } }
-  function botShoot(bot,pp){ bot.mzT=0.05; snd('shot'); const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; const spr=0.05; const ax=dx/L+(Math.random()-0.5)*spr, az=dz/L+(Math.random()-0.5)*spr, aL=Math.hypot(ax,az)||1; spawnBullet(bot.x+ax/aL*0.7, 0.85, bot.z+az/aL*0.7, ax/aL*62, 3, az/aL*62, 1, 14, 1); }
+  function botShoot(bot,pp){ bot.mzT=0.05; snd('shot'); const dx=pp.x-bot.x, dz=pp.z-bot.z, L=Math.hypot(dx,dz)||1; const spr=0.085; const ax=dx/L+(Math.random()-0.5)*spr, az=dz/L+(Math.random()-0.5)*spr, aL=Math.hypot(ax,az)||1; spawnBullet(bot.x+ax/aL*0.7, 0.85, bot.z+az/aL*0.7, ax/aL*58, 3, az/aL*58, 1, 10, 1); }
   let ehpBot=null, ehpT=0; const _pv=new THREE.Vector3();
   function updateBots(dt){ const pp=playerPos();
     for(const bot of bots){ if(!bot.alive){ bot.resp-=dt; if(bot.resp<=0){ const s=spawnPt(); bot.x=s.x; bot.z=s.z; bot.hp=100; bot.alive=true; bot.g.visible=true; } continue; }
@@ -431,8 +446,8 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
       bot.g.position.set(bot.x, Math.abs(Math.sin(tG*7+bot.h))*0.05, bot.z); bot.g.rotation.y=Math.atan2(dx,dz);
       if(bot.flash>0){ bot.flash-=dt; bot.body.material.emissive.setHex(0xff3030); bot.body.material.emissiveIntensity=Math.max(0,bot.flash)*7; } else bot.body.material.emissiveIntensity=0;
       if(bot.mzT>0) bot.mzT-=dt; bot.mz.visible=bot.mzT>0;
-      if(state==='human'){ if(bot.burst>0){ bot.burst-=dt; if(bot.burst<=0 && bot._shots>0){ botShoot(bot,pp); bot._shots--; bot.burst=0.13; } }
-        bot.fireCD-=dt; if(bot.fireCD<=0 && L<55){ bot.fireCD=1.3+Math.random()*1.2; bot._shots=2+((Math.random()*2)|0); bot.burst=0.01; } }
+      if(state==='human'){ if(bot.burst>0){ bot.burst-=dt; if(bot.burst<=0 && bot._shots>0){ botShoot(bot,pp); bot._shots--; bot.burst=0.14; } }
+        bot.fireCD-=dt; if(bot.fireCD<=0 && L<50 && spawnProt<=0 && !coverBlocks(bot.x,0.9,bot.z, pp.x,pp.y,pp.z)){ bot.fireCD=1.8+Math.random()*1.7; bot._shots=2+((Math.random()*2)|0); bot.burst=0.01; } else if(bot.fireCD<=0) bot.fireCD=0.5; }
     }
     if(ehpT>0 && ehpBot && ehpBot.alive){ ehpT-=dt; _pv.set(ehpBot.x,0.72,ehpBot.z); _pv.project(camera); if(_pv.z<1){ ehpEl.style.display='block'; ehpEl.style.left=((_pv.x*0.5+0.5)*innerWidth-28)+'px'; ehpEl.style.top=((-_pv.y*0.5+0.5)*innerHeight-30)+'px'; ehpFill.style.width=Math.max(0,ehpBot.hp)+'%'; } else ehpEl.style.display='none'; } else ehpEl.style.display='none';
     for(let i=feedItems.length-1;i>=0;i--){ const f=feedItems[i]; f.t-=dt; if(f.t<0.4) f.el.style.opacity='0'; if(f.t<=0){ f.el.remove(); feedItems.splice(i,1); } }
@@ -440,7 +455,8 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   }
   function segD2(ax,ay,az,bx,by,bz,cx,cy,cz){ const dx=bx-ax,dy=by-ay,dz=bz-az; const l2=dx*dx+dy*dy+dz*dz||1e-6; let t=((cx-ax)*dx+(cy-ay)*dy+(cz-az)*dz)/l2; t=t<0?0:t>1?1:t; const ex=cx-(ax+dx*t),ey=cy-(ay+dy*t),ez=cz-(az+dz*t); return ex*ex+ey*ey+ez*ez; }
   function updateBullets(dt){ for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; const ax=b.x,ay=b.y,az=b.z; b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vy-=3*dt; b.life-=dt; let hit=false;
-      if(b.team===0){ if(mAlive && segD2(ax,ay,az,b.x,b.y,b.z, monster.position.x,monster.position.y+5,monster.position.z)<18){ hurtMonster(b.dmg); if(state==='human') hitmark(false); hit=true; }
+      if(b.r<2 && coverBlocks(ax,ay,az,b.x,b.y,b.z)){ hit=true; }
+      else if(b.team===0){ if(mAlive && segD2(ax,ay,az,b.x,b.y,b.z, monster.position.x,monster.position.y+5,monster.position.z)<18){ hurtMonster(b.dmg); if(state==='human') hitmark(false); hit=true; }
         if(!hit) for(const bot of bots){ if(!bot.alive) continue;
           if(segD2(ax,ay,az,b.x,b.y,b.z, bot.x,0.5,bot.z)<0.12){ bot.hp-=55; bot.flash=0.14; ehpBot=bot; ehpT=1.6; if(state==='human') hitmark(true); if(bot.hp<=0) killBot(bot,true); hit=true; break; }
           if(segD2(ax,ay,az,b.x,b.y,b.z, bot.x,0.28,bot.z)<0.34){ bot.hp-=26; bot.flash=0.14; ehpBot=bot; ehpT=1.6; if(state==='human') hitmark(false); if(bot.hp<=0) killBot(bot,true); hit=true; break; } }
@@ -451,7 +467,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function ctxAction(){ if(state==='human') boardNearest(); else if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); }
   ctxBtn.addEventListener('click', ctxAction); exitBtn.addEventListener('click', exitVehicle);
   window.__state=()=>state; window.__board=(i)=>{ nearIdx=(i==null?nearIdx:i); boardNearest(); }; window.__combine=startCombine; window.__separate=startSeparate; window.__near=()=>nearIdx; window.__info=()=>({calls:renderer.info.render.calls, tris:renderer.info.render.triangles, buildings:buildings.length});
-  window.__hp=()=>({pHP,mHP,kills,combatOn,combatOver,state,bullets:bullets.length}); window.__torso=()=>torso?{x:torso.position.x,y:torso.position.y,z:torso.position.z}:null; window.__hurtMon=(n)=>hurtMonster(n); window.__fire=()=>{fireCD=0;fire();}; window.__setlook=(y,p)=>{heading=y;pitch=p;}; window.__cam=()=>({x:camera.position.x,y:camera.position.y,z:camera.position.z}); window.__lastb=()=>bullets.length?bullets[bullets.length-1]:null; window.__fps=()=>({ammo,reloading,ads:+ads.toFixed(2),fov:+camera.fov.toFixed(1),recoilP:+recoilP.toFixed(3)}); window.__ads=(b)=>setADS(b); window.__reload=()=>reload(); window.__dm=()=>({kills,deaths,pHP:Math.round(pHP),aliveBots:bots.filter(b=>b.alive).length,minBotHP:Math.min.apply(0,bots.map(b=>b.hp))}); window.__botfront=()=>{ const b=bots.find(x=>x.alive)||bots[0]; b.alive=true; b.g.visible=true; b.hp=100; const cd=Math.cos(pitch); b.x=human.position.x+Math.sin(heading)*4; b.z=human.position.z+Math.cos(heading)*4; return b.name; };
+  window.__hp=()=>({pHP,mHP,kills,combatOn,combatOver,state,bullets:bullets.length}); window.__torso=()=>torso?{x:torso.position.x,y:torso.position.y,z:torso.position.z}:null; window.__hurtMon=(n)=>hurtMonster(n); window.__fire=()=>{fireCD=0;fire();}; window.__setlook=(y,p)=>{heading=y;pitch=p;}; window.__cam=()=>({x:camera.position.x,y:camera.position.y,z:camera.position.z}); window.__lastb=()=>bullets.length?bullets[bullets.length-1]:null; window.__fps=()=>({ammo,reloading,ads:+ads.toFixed(2),fov:+camera.fov.toFixed(1),recoilP:+recoilP.toFixed(3)}); window.__ads=(b)=>setADS(b); window.__reload=()=>reload(); window.__dm=()=>({kills,deaths,pHP:Math.round(pHP),aliveBots:bots.filter(b=>b.alive).length,minBotHP:Math.min.apply(0,bots.map(b=>b.hp))}); window.__botfront=()=>{ const b=bots.find(x=>x.alive)||bots[0]; b.alive=true; b.g.visible=true; b.hp=100; const cd=Math.cos(pitch); b.x=human.position.x+Math.sin(heading)*4; b.z=human.position.z+Math.cos(heading)*4; return b.name; }; window.__lvl=()=>({covers:covers.length, spawnProt:+spawnProt.toFixed(1), pHP:Math.round(pHP)});
 
   const down={};
   addEventListener('keydown', e=>{ let k=e.key.toLowerCase(); down[k]=true; if(k==='r'){ if(state==='human') reload(); else resetRobot(); } if(k==='e'){ if(state==='human') boardNearest(); else if(state==='piloting') exitVehicle(); } if(k===' '){ e.preventDefault(); if(state==='piloting') startCombine(); else if(state==='combined') startSeparate(); } if(k.startsWith('arrow')) e.preventDefault(); });
@@ -473,7 +489,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     // 스핀(로터/드릴)
     if(state!=='combined'){ for(const p of planes){ if(!p.g.visible) continue; const sp=p.g.userData.spin; if(sp) for(const s of sp) s.m.rotation[s.ax]+=s.sp*dt; } }
     // 총격전(모든 단계)
-    if(fireCD>0) fireCD-=dt; if(fireHeld||down['f']) fire(); updateBots(dt); updateBullets(dt); updateFPS(dt); if(downT>0){ downT-=dt; if(downT<=0){ pHP=100; setHP(); deathEl.style.display='none'; if(state==='human'){ const sp=spawnPt(); human.position.set(sp.x,0,sp.z); } } }
+    if(fireCD>0) fireCD-=dt; if(fireHeld||down['f']) fire(); updateBots(dt); updateBullets(dt); updateFPS(dt); if(downT>0){ downT-=dt; if(downT<=0){ pHP=100; setHP(); deathEl.style.display='none'; if(state==='human'){ const sp=spawnSafe(); human.position.set(sp.x,0,sp.z); spawnProt=2.5; } } }
 
     if(state==='human'){
       const f=(down['arrowup']||down['w']?1:0)-(down['arrowdown']||down['s']?1:0); const s=(down['arrowright']||down['d']?1:0)-(down['arrowleft']||down['a']?1:0);

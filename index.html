@@ -477,7 +477,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
 
     if(state==='human'){
       const f=(down['arrowup']||down['w']?1:0)-(down['arrowdown']||down['s']?1:0); const s=(down['arrowright']||down['d']?1:0)-(down['arrowleft']||down['a']?1:0);
-      const fx=Math.sin(heading),fz=Math.cos(heading),sx=Math.cos(heading),sz=-Math.sin(heading);
+      const fx=Math.sin(heading),fz=Math.cos(heading),sx=-Math.cos(heading),sz=Math.sin(heading);
       const spd=HSPD*(down['shift']?1.7:1)*(ads>0.5?0.6:1);
       human.position.x+=(fx*f+sx*s)*spd*dt; human.position.z+=(fz*f+sz*s)*spd*dt; human.rotation.y=heading;
       if(f||s) bobPhase+=dt*(down['shift']?15:9);

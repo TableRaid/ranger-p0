@@ -1,42 +1,42 @@
 <style>
-  :root { --panel: rgba(10,14,24,0.85); --line:#243352; }
-  html, body { margin:0; height:100%; overflow:hidden; background:#0a0e18; font-family:system-ui,sans-serif; color:#e8ecf4; }
+  :root { --panel: rgba(10,14,24,0.82); --line:#2a3a5c; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#1a1430; font-family:system-ui,sans-serif; color:#e8ecf4; }
   #app { position:fixed; inset:0; }
   .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.5; backdrop-filter:blur(4px); z-index:5; }
-  #title { left:10px; top:10px; max-width:260px; }
-  #title h1 { font-size:13px; margin:0 0 4px; letter-spacing:.3px; }
-  #title .sub { color:#9fb3e0; font-size:11px; }
-  #title .row { margin-top:6px; }
+  #title { left:10px; top:10px; max-width:250px; }
+  #title h1 { font-size:13px; margin:0 0 4px; }
+  #title .sub { color:#b9c4e6; font-size:11px; }
+  #title .row { margin-top:5px; }
   #title .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
-  #title .k { display:inline-block; min-width:18px; padding:1px 5px; margin:0 2px 2px 0; background:#1d2740; border:1px solid #38466a; border-radius:5px; text-align:center; font-weight:600; }
+  #title .k { display:inline-block; min-width:18px; padding:1px 5px; margin:0 2px 2px 0; background:#20305a; border:1px solid #3a4e82; border-radius:5px; text-align:center; font-weight:600; }
   #status { left:10px; bottom:calc(10px + env(safe-area-inset-bottom)); font-size:12px; }
   #status b { color:#ffce54; }
   #pad { position:fixed; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:6; display:flex; gap:8px; align-items:flex-end; }
   #pad .cluster { display:grid; gap:5px; justify-items:center; }
   #pad .cluster.mid { align-self:center; }
-  #pad .lbl { font-size:10px; color:#9fb3e0; }
-  #pad button { width:50px; height:38px; border-radius:9px; border:1px solid #38466a; background:#1b2438; color:#e8ecf4; font-size:15px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
-  #pad button:active { background:#2a3a5c; }
+  #pad .lbl { font-size:10px; color:#b9c4e6; }
+  #pad button { width:50px; height:38px; border-radius:9px; border:1px solid #3a4e82; background:#22315c; color:#fff; font-size:15px; font-weight:700; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #pad button:active { background:#33477e; }
   #pad #btnReset { width:66px; height:32px; font-size:12px; }
-  #camBtn { position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#9fb3e0; border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
-  @media (max-width:760px){ #title{max-width:170px;font-size:11px;} }
+  #camBtn { position:fixed; right:10px; top:10px; z-index:7; font-size:11px; background:var(--panel); color:#b9c4e6; border:1px solid var(--line); border-radius:6px; padding:5px 10px; }
+  @media (max-width:760px){ #title{max-width:165px;font-size:11px;} }
 </style>
 
 <div id="app"></div>
 
 <div id="title" class="panel">
-  <h1>레인저 서바이벌 — 스케일 구성</h1>
-  <div class="sub">도시 · 괴물 · 거대로봇 · 사람 한 화면 배치</div>
-  <div class="row"><span class="dot" style="background:#ffd24a"></span>거대로봇 (조종 가능)</div>
-  <div class="row"><span class="dot" style="background:#ff3355"></span>괴물 (괴수 스케일)</div>
+  <h1>레인저 서바이벌 — 스케일 구성 v2</h1>
+  <div class="sub">황혼 도시 · 괴수 · 대형 합체로봇 · 사람 / 건물 파괴</div>
+  <div class="row"><span class="dot" style="background:#ffd24a"></span>대형 로봇 (조종·건물 파괴)</div>
+  <div class="row"><span class="dot" style="background:#ff3355"></span>괴물 (로봇과 비슷한 크기)</div>
   <div class="row"><span class="dot" style="background:#3b7bff"></span>레인저·사람 (소형)</div>
-  <div class="row" style="margin-top:6px;color:#8b97b0;font-size:11px;">
-    다리 <span class="k">A</span><span class="k">Z</span> <span class="k">L</span><span class="k">.</span> · 팔 <span class="k">Q</span><span class="k">W</span> <span class="k">O</span><span class="k">P</span> · <span class="k">R</span> 세우기<br>모바일은 오른쪽 아래 버튼
+  <div class="row" style="margin-top:6px;color:#9fb0d4;font-size:11px;">
+    다리 <span class="k">A</span><span class="k">Z</span> <span class="k">L</span><span class="k">.</span> · 팔 <span class="k">Q</span><span class="k">W</span> <span class="k">O</span><span class="k">P</span> · <span class="k">R</span> 세우기<br>모바일은 오른쪽 아래 버튼. 로봇으로 건물에 부딪치면 무너짐.
   </div>
 </div>
 
 <button id="camBtn">시점: 전경</button>
-<div id="status" class="panel">로봇: <b id="st">로딩중…</b> · 전진 <b id="dist">0.0</b> m</div>
+<div id="status" class="panel">로봇: <b id="st">로딩중…</b> · 부순 건물 <b id="wrecked">0</b></div>
 
 <div id="pad">
   <div class="cluster">
@@ -91,212 +91,211 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
 <script>
 (function () {
   if (!window.THREE || !window.CANNON) { document.getElementById('st').textContent='라이브러리 로드 실패'; return; }
-  const P = { gravity:9.8, power:45, speed:6, balance:5, footFriction:1.4 };
+  const RS = 2.0;                        // 로봇 스케일(대형화)
+  const P = { power:280, speed:6, balance:11, footFriction:1.5, gravity:9.8 };
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0e18);
-  scene.fog = new THREE.Fog(0x0a0e18, 55, 230);
-  const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 600);
+  scene.fog = new THREE.Fog(0x35305e, 70, 300);
+  const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 900);
   const renderer = new THREE.WebGLRenderer({ antialias:true });
   renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
   document.getElementById('app').appendChild(renderer.domElement);
   addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 
-  // --- 야간 도시 조명 ---
-  scene.add(new THREE.HemisphereLight(0x2a3a66, 0x05060a, 0.55));
-  const moon = new THREE.DirectionalLight(0xbcd0ff, 0.8);
-  moon.position.set(20, 40, 12); moon.castShadow = true;
-  moon.shadow.mapSize.set(2048,2048);
-  const S=40; moon.shadow.camera.left=-S; moon.shadow.camera.right=S; moon.shadow.camera.top=S; moon.shadow.camera.bottom=-S;
-  moon.shadow.camera.far=140; moon.shadow.bias=-0.0004;
-  scene.add(moon);
-  const rim = new THREE.DirectionalLight(0xff4a6a, 0.25); rim.position.set(-10,8,-25); scene.add(rim);
+  // --- 스카이박스 (황혼 그라디언트) ---
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(500,32,20), new THREE.ShaderMaterial({
+    side:THREE.BackSide,
+    uniforms:{ top:{value:new THREE.Color(0x14204e)}, mid:{value:new THREE.Color(0x6a2f6e)}, bot:{value:new THREE.Color(0xe0763c)} },
+    vertexShader:'varying vec3 vp; void main(){ vp=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:'varying vec3 vp; uniform vec3 top; uniform vec3 mid; uniform vec3 bot; void main(){ float h=normalize(vp).y; vec3 c = h>0.12 ? mix(mid,top,smoothstep(0.12,0.75,h)) : mix(bot,mid,smoothstep(-0.08,0.12,h)); gl_FragColor=vec4(c,1.0);}'
+  }));
+  scene.add(sky);
+  // 별
+  (function(){ const g=new THREE.BufferGeometry(); const n=350, a=new Float32Array(n*3);
+    for(let i=0;i<n;i++){ const th=Math.random()*Math.PI*2, ph=Math.random()*0.5+0.05, r=460;
+      a[i*3]=Math.cos(th)*Math.cos(ph)*r; a[i*3+1]=Math.sin(ph)*r; a[i*3+2]=Math.sin(th)*Math.cos(ph)*r; }
+    g.setAttribute('position', new THREE.BufferAttribute(a,3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0xfff2d0, size:1.6, sizeAttenuation:false }))); })();
 
-  // --- 바닥 (도시 지면) ---
-  const ground3 = new THREE.Mesh(new THREE.PlaneGeometry(600,600), new THREE.MeshStandardMaterial({ color:0x0d1220, roughness:1 }));
+  // --- 조명 (밝은 황혼) ---
+  scene.add(new THREE.HemisphereLight(0x8b9ad8, 0x3a2c46, 0.95));
+  scene.add(new THREE.AmbientLight(0x404a6e, 0.35));
+  const key = new THREE.DirectionalLight(0xffd2a0, 1.5);
+  key.position.set(-40, 34, 22); key.castShadow = true;
+  key.shadow.mapSize.set(2048,2048);
+  const S=60; key.shadow.camera.left=-S; key.shadow.camera.right=S; key.shadow.camera.top=S; key.shadow.camera.bottom=-S;
+  key.shadow.camera.far=220; key.shadow.bias=-0.0004; scene.add(key);
+  const fill = new THREE.DirectionalLight(0x6f8bff, 0.5); fill.position.set(30,18,-20); scene.add(fill);
+
+  // --- 바닥 ---
+  const ground3 = new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.MeshStandardMaterial({ color:0x222036, roughness:1 }));
   ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
-  const grid = new THREE.GridHelper(600, 150, 0x1c2b48, 0x121a2e); grid.position.y=0.02; scene.add(grid);
+  const grid = new THREE.GridHelper(900, 180, 0x3a3a66, 0x2a2748); grid.position.y=0.02; scene.add(grid);
 
-  // --- 도시 빌딩 (InstancedMesh: 창문 발광) ---
+  // --- 물리 세계 ---
+  const world = new CANNON.World(); world.gravity.set(0,-P.gravity,0);
+  world.broadphase = new CANNON.SAPBroadphase(world); world.solver.iterations=18;
+  world.defaultContactMaterial.contactEquationStiffness=1e7;
+  const GROUND=1, ROBOT=2, BUILDING=4;
+  const matGround=new CANNON.Material('g'), matFoot=new CANNON.Material('f');
+  const gb=new CANNON.Body({ mass:0, material:matGround, collisionFilterGroup:GROUND, collisionFilterMask:ROBOT|BUILDING });
+  gb.addShape(new CANNON.Plane()); gb.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2); world.addBody(gb);
+  world.addContactMaterial(new CANNON.ContactMaterial(matGround, matFoot, { friction:P.footFriction, restitution:0 }));
+
+  // --- 도시 빌딩 (개별 = 파괴 가능) ---
   function makeWindowTexture(){
     const c=document.createElement('canvas'); c.width=64; c.height=128; const g=c.getContext('2d');
-    g.fillStyle='#070a12'; g.fillRect(0,0,64,128);
-    for(let y=5;y<128;y+=11) for(let x=5;x<64;x+=13){
-      const lit=Math.random()<0.45;
-      g.fillStyle = lit ? (Math.random()<0.5?'#ffd27f':'#8fc4ff') : '#0e1524';
-      g.fillRect(x,y,8,7);
-    }
-    const t=new THREE.CanvasTexture(c); return t;
+    g.fillStyle='#0c1020'; g.fillRect(0,0,64,128);
+    for(let y=5;y<128;y+=11) for(let x=5;x<64;x+=13){ const lit=Math.random()<0.5;
+      g.fillStyle= lit ? (Math.random()<0.5?'#ffd694':'#9fd0ff') : '#161e34'; g.fillRect(x,y,8,7); }
+    return new THREE.CanvasTexture(c);
   }
   const winTex = makeWindowTexture();
   const bGeo = new THREE.BoxGeometry(1,1,1);
-  const bMat = new THREE.MeshStandardMaterial({ color:0x141b2c, roughness:0.92, metalness:0.0, emissive:0xffffff, emissiveMap:winTex, emissiveIntensity:0.55 });
-  const CITY=90;
-  const buildings = new THREE.InstancedMesh(bGeo, bMat, CITY);
-  buildings.castShadow=true; buildings.receiveShadow=true;
-  const d3=new THREE.Object3D();
-  for(let i=0;i<CITY;i++){
-    const ang=Math.random()*Math.PI*2, rad=26+Math.random()*120;
-    const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad;
-    const h=8+Math.random()*34, w=4+Math.random()*5, dd=4+Math.random()*5;
-    d3.position.set(x,h/2,z); d3.scale.set(w,h,dd); d3.rotation.y=Math.random()*Math.PI; d3.updateMatrix();
-    buildings.setMatrixAt(i,d3.matrix);
-  }
-  buildings.instanceMatrix.needsUpdate=true; scene.add(buildings);
+  const bMat = new THREE.MeshStandardMaterial({ color:0x2a3350, roughness:0.9, emissive:0xffffff, emissiveMap:winTex, emissiveIntensity:0.6 });
+  const debMat = new THREE.MeshStandardMaterial({ color:0x2a3350, roughness:0.95, emissive:0x111826, emissiveIntensity:0.3 });
 
-  // --- 괴물 (괴수 스케일 ~9m) ---
+  const buildings=[]; const debris=[]; let wrecked=0;
+  const wreckedEl=document.getElementById('wrecked');
+  function makeBuilding(x,z,w,h,d,rot){
+    const mesh=new THREE.Mesh(bGeo, bMat); mesh.scale.set(w,h,d); mesh.position.set(x,h/2,z); mesh.rotation.y=rot;
+    mesh.castShadow=true; mesh.receiveShadow=true; scene.add(mesh);
+    const body=new CANNON.Body({ mass:0, collisionFilterGroup:BUILDING, collisionFilterMask:ROBOT|BUILDING|GROUND, position:new CANNON.Vec3(x,h/2,z) });
+    body.addShape(new CANNON.Box(new CANNON.Vec3(w/2,h/2,d/2))); body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), rot); world.addBody(body);
+    const b={ mesh, body, alive:true, w,h,d,x,z };
+    body.addEventListener('collide', function(){ if(b.alive) destroyBuilding(b); });
+    buildings.push(b);
+  }
+  for(let i=0;i<58;i++){
+    const ang=Math.random()*Math.PI*2, rad=22+Math.random()*130;
+    const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad - 4;
+    const h=10+Math.random()*40, w=5+Math.random()*6, d=5+Math.random()*6;
+    makeBuilding(x,z,w,h,d, Math.random()*Math.PI);
+  }
+  function destroyBuilding(b){
+    b.alive=false; wrecked++; wreckedEl.textContent=wrecked; scene.remove(b.mesh); world.removeBody(b.body);
+    const nx=2, ny=Math.max(2,Math.round(b.h/6)), nz=2, cw=b.w/nx, ch=b.h/ny, cd=b.d/nz;
+    for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){
+      const px=b.x+(ix+0.5-nx/2)*cw, py=(iy+0.5)*ch, pz=b.z+(iz+0.5-nz/2)*cd;
+      const body=new CANNON.Body({ mass:3, collisionFilterGroup:BUILDING, collisionFilterMask:GROUND|BUILDING|ROBOT, position:new CANNON.Vec3(px,py,pz), angularDamping:0.2 });
+      body.addShape(new CANNON.Box(new CANNON.Vec3(cw/2,ch/2,cd/2)));
+      body.velocity.set((Math.random()-0.5)*7, Math.random()*5, (Math.random()-0.5)*7);
+      body.angularVelocity.set((Math.random()-0.5)*5,(Math.random()-0.5)*5,(Math.random()-0.5)*5);
+      world.addBody(body);
+      const mesh=new THREE.Mesh(bGeo, debMat); mesh.scale.set(cw,ch,cd); mesh.castShadow=true; scene.add(mesh);
+      debris.push({ body, mesh, life:7 });
+    }
+    // 파편 총량 제한
+    while(debris.length>240){ const d0=debris.shift(); scene.remove(d0.mesh); world.removeBody(d0.body); }
+  }
+
+  // --- 괴물 (~9m, 로봇과 비슷) ---
   function buildMonster(){
     const g=new THREE.Group();
-    const skin=new THREE.MeshStandardMaterial({color:0x2b1e3a, roughness:0.75, metalness:0.08});
-    const glow=new THREE.MeshStandardMaterial({color:0x180f22, emissive:0xff3355, emissiveIntensity:1.8, roughness:0.5});
+    const skin=new THREE.MeshStandardMaterial({color:0x3a2850, roughness:0.7, metalness:0.1});
+    const glow=new THREE.MeshStandardMaterial({color:0x1c1030, emissive:0xff3355, emissiveIntensity:2.0, roughness:0.5});
     const body=new THREE.Mesh(new THREE.BoxGeometry(4,4.6,3), skin); body.position.y=4.6; g.add(body);
     const belly=new THREE.Mesh(new THREE.SphereGeometry(1.15,18,18), glow); belly.position.set(0,4.3,1.45); g.add(belly);
     const head=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.1,2.3), skin); head.position.y=7.9; g.add(head);
     const eyeMat=new THREE.MeshStandardMaterial({color:0x000000, emissive:0xffee55, emissiveIntensity:3});
-    const eyeGeo=new THREE.SphereGeometry(0.3,12,12);
-    const eL=new THREE.Mesh(eyeGeo,eyeMat); eL.position.set(-0.62,8.1,1.2); g.add(eL);
+    const eG=new THREE.SphereGeometry(0.3,12,12);
+    const eL=new THREE.Mesh(eG,eyeMat); eL.position.set(-0.62,8.1,1.2); g.add(eL);
     const eR=eL.clone(); eR.position.x=0.62; g.add(eR);
-    const hornGeo=new THREE.ConeGeometry(0.38,1.6,8);
-    const h1=new THREE.Mesh(hornGeo,skin); h1.position.set(-0.85,9.4,0); h1.rotation.z=0.35; g.add(h1);
+    const hG=new THREE.ConeGeometry(0.38,1.6,8);
+    const h1=new THREE.Mesh(hG,skin); h1.position.set(-0.85,9.4,0); h1.rotation.z=0.35; g.add(h1);
     const h2=h1.clone(); h2.position.x=0.85; h2.rotation.z=-0.35; g.add(h2);
-    const armGeo=new THREE.BoxGeometry(1.2,3.6,1.2);
-    const aL=new THREE.Mesh(armGeo,skin); aL.position.set(-2.95,4.7,0); aL.rotation.z=0.28; g.add(aL);
-    const aR=new THREE.Mesh(armGeo,skin); aR.position.set(2.95,4.7,0); aR.rotation.z=-0.28; g.add(aR);
-    const legGeo=new THREE.BoxGeometry(1.5,3.1,1.5);
-    const lL=new THREE.Mesh(legGeo,skin); lL.position.set(-1.15,1.55,0); g.add(lL);
-    const lR=new THREE.Mesh(legGeo,skin); lR.position.set(1.15,1.55,0); g.add(lR);
+    const aG=new THREE.BoxGeometry(1.2,3.6,1.2);
+    const aL=new THREE.Mesh(aG,skin); aL.position.set(-2.95,4.7,0); aL.rotation.z=0.28; g.add(aL);
+    const aR=new THREE.Mesh(aG,skin); aR.position.set(2.95,4.7,0); aR.rotation.z=-0.28; g.add(aR);
+    const lG=new THREE.BoxGeometry(1.5,3.1,1.5);
+    const lL=new THREE.Mesh(lG,skin); lL.position.set(-1.15,1.55,0); g.add(lL);
+    const lR=new THREE.Mesh(lG,skin); lR.position.set(1.15,1.55,0); g.add(lR);
     g.traverse(m=>{ if(m.isMesh) m.castShadow=true; });
-    g.position.set(0,0,-24); scene.add(g); return g;
+    g.position.set(6,0,-26); scene.add(g); return g;
   }
   const monster = buildMonster();
 
-  // --- 작은 사람들 (레인저 5색 + 시민) ---
+  // --- 작은 사람들 ---
   const RANGER=[0xff3b3b,0x3b7bff,0xffd23b,0x3bd47a,0xff7fc4];
   function makePerson(color){
     const g=new THREE.Group();
-    const body=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.3,0.11), new THREE.MeshStandardMaterial({color, roughness:0.6}));
-    body.position.y=0.25; g.add(body);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,10), new THREE.MeshStandardMaterial({color:0xf0c9a0}));
-    head.position.y=0.46; g.add(head);
-    g.traverse(m=>{ if(m.isMesh) m.castShadow=true; });
-    return g;
+    const b=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.3,0.11), new THREE.MeshStandardMaterial({color, roughness:0.6})); b.position.y=0.25; g.add(b);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,10), new THREE.MeshStandardMaterial({color:0xf0c9a0})); h.position.y=0.46; g.add(h);
+    g.traverse(m=>{ if(m.isMesh) m.castShadow=true; }); return g;
   }
   const people=[];
-  // 레인저 5인: 로봇 발치 근처 클러스터
-  for(let i=0;i<5;i++){
-    const p=makePerson(RANGER[i]);
-    const x=(-1.6+i*0.8)+ (Math.random()*0.4-0.2), z=3.2+Math.random()*1.2;
-    p.position.set(x,0,z); scene.add(p);
-    people.push({ g:p, phase:Math.random()*6.28, flee:false });
-  }
-  // 시민 20인: 흩어져 도망
-  for(let i=0;i<20;i++){
-    const p=makePerson(0xaeb7c9);
-    const ang=Math.random()*Math.PI*2, rad=4+Math.random()*10;
-    p.position.set(Math.cos(ang)*rad, 0, 6+Math.sin(ang)*rad*0.5);
-    scene.add(p); people.push({ g:p, phase:Math.random()*6.28, flee:true });
-  }
+  for(let i=0;i<5;i++){ const p=makePerson(RANGER[i]); p.position.set(-2+i*1.0, 0, 7+Math.random()); scene.add(p); people.push({g:p, phase:Math.random()*6.28, flee:false}); }
+  for(let i=0;i<22;i++){ const p=makePerson(0xaeb7c9); const a=Math.random()*6.28, r=5+Math.random()*12; p.position.set(Math.cos(a)*r, 0, 9+Math.sin(a)*r*0.5); scene.add(p); people.push({g:p, phase:Math.random()*6.28, flee:true}); }
 
-  // --- 물리: 로봇 ---
-  const world = new CANNON.World(); world.gravity.set(0,-P.gravity,0);
-  world.broadphase = new CANNON.SAPBroadphase(world); world.solver.iterations=20;
-  world.defaultContactMaterial.contactEquationStiffness=1e7;
-  const GROUND=1, ROBOT=2;
-  const matGround=new CANNON.Material('g'), matFoot=new CANNON.Material('f');
-  const gb=new CANNON.Body({ mass:0, material:matGround, collisionFilterGroup:GROUND, collisionFilterMask:ROBOT });
-  gb.addShape(new CANNON.Plane()); gb.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0), -Math.PI/2); world.addBody(gb);
-  world.addContactMaterial(new CANNON.ContactMaterial(matGround, matFoot, { friction:P.footFriction, restitution:0 }));
-
+  // --- 로봇 (대형: RS배) ---
   const meshes=[];
   function makePart(hx,hy,hz,mass,color,pos){
-    const body=new CANNON.Body({ mass, material:matFoot, position:new CANNON.Vec3(pos.x,pos.y,pos.z),
-      collisionFilterGroup:ROBOT, collisionFilterMask:GROUND, linearDamping:0.02, angularDamping:0.06 });
-    body.addShape(new CANNON.Box(new CANNON.Vec3(hx,hy,hz))); world.addBody(body);
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(hx*2,hy*2,hz*2), new THREE.MeshStandardMaterial({color, roughness:0.55, metalness:0.25 }));
+    const body=new CANNON.Body({ mass:mass*RS*RS*RS, material:matFoot, position:new CANNON.Vec3(pos.x,pos.y,pos.z),
+      collisionFilterGroup:ROBOT, collisionFilterMask:GROUND|BUILDING, linearDamping:0.02, angularDamping:0.08 });
+    body.addShape(new CANNON.Box(new CANNON.Vec3(hx*RS,hy*RS,hz*RS))); world.addBody(body);
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(hx*2*RS,hy*2*RS,hz*2*RS), new THREE.MeshStandardMaterial({color, roughness:0.5, metalness:0.35 }));
     mesh.castShadow=true; scene.add(mesh); meshes.push({body,mesh}); return body;
   }
-  const START={x:0,y:3.0,z:0};
+  const SY=3.0*RS;
   let torso,head2,armL,armR,legL,legR; const hinges={};
   (function build(){
-    torso=makePart(0.45,0.6,0.28,6,0xffd24a,{x:0,y:START.y,z:0});
-    head2=makePart(0.26,0.26,0.26,1.0,0x7ec8ff,{x:0,y:START.y+1.0,z:0});
-    armL=makePart(0.16,0.5,0.16,1.2,0x8affc1,{x:-0.75,y:START.y+0.1,z:0});
-    armR=makePart(0.16,0.5,0.16,1.2,0xff9d5c,{x:0.75,y:START.y+0.1,z:0});
-    legL=makePart(0.2,0.62,0.2,2.2,0xc9a0ff,{x:-0.26,y:START.y-1.1,z:0});
-    legR=makePart(0.2,0.62,0.2,2.2,0xff7fa8,{x:0.26,y:START.y-1.1,z:0});
-    const X=new CANNON.Vec3(1,0,0);
-    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:new CANNON.Vec3(0,0.6,0),pivotB:new CANNON.Vec3(0,-0.26,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:new CANNON.Vec3(-0.45,0.45,0),pivotB:new CANNON.Vec3(0,0.5,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:new CANNON.Vec3(0.45,0.45,0),pivotB:new CANNON.Vec3(0,0.5,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:new CANNON.Vec3(-0.26,-0.6,0),pivotB:new CANNON.Vec3(0,0.62,0),axisA:X,axisB:X,maxForce:1e6});
-    hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:new CANNON.Vec3(0.26,-0.6,0),pivotB:new CANNON.Vec3(0,0.62,0),axisA:X,axisB:X,maxForce:1e6});
-    for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power); }
+    torso=makePart(0.45,0.6,0.28,6,0xffd24a,{x:0,y:SY,z:0});
+    head2=makePart(0.26,0.26,0.26,1.0,0x7ec8ff,{x:0,y:SY+1.0*RS,z:0});
+    armL=makePart(0.16,0.5,0.16,1.2,0x8affc1,{x:-0.75*RS,y:SY+0.1*RS,z:0});
+    armR=makePart(0.16,0.5,0.16,1.2,0xff9d5c,{x:0.75*RS,y:SY+0.1*RS,z:0});
+    legL=makePart(0.2,0.62,0.2,2.2,0xc9a0ff,{x:-0.26*RS,y:SY-1.1*RS,z:0});
+    legR=makePart(0.2,0.62,0.2,2.2,0xff7fa8,{x:0.26*RS,y:SY-1.1*RS,z:0});
+    const X=new CANNON.Vec3(1,0,0); const V=(a,b,c)=>new CANNON.Vec3(a*RS,b*RS,c*RS);
+    hinges.head=new CANNON.HingeConstraint(torso,head2,{pivotA:V(0,0.6,0),pivotB:V(0,-0.26,0),axisA:X,axisB:X,maxForce:1e7});
+    hinges.armL=new CANNON.HingeConstraint(torso,armL,{pivotA:V(-0.45,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7});
+    hinges.armR=new CANNON.HingeConstraint(torso,armR,{pivotA:V(0.45,0.45,0),pivotB:V(0,0.5,0),axisA:X,axisB:X,maxForce:1e7});
+    hinges.legL=new CANNON.HingeConstraint(torso,legL,{pivotA:V(-0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
+    hinges.legR=new CANNON.HingeConstraint(torso,legR,{pivotA:V(0.26,-0.6,0),pivotB:V(0,0.62,0),axisA:X,axisB:X,maxForce:1e7});
+    for(const k in hinges){ const h=hinges[k]; world.addConstraint(h); h.enableMotor(); h.setMotorSpeed(0); h.setMotorMaxForce(P.power*RS*RS); }
   })();
   function resetRobot(){
-    const parts=[[torso,0,START.y,0],[head2,0,START.y+1.0,0],[armL,-0.75,START.y+0.1,0],[armR,0.75,START.y+0.1,0],[legL,-0.26,START.y-1.1,0],[legR,0.26,START.y-1.1,0]];
+    const parts=[[torso,0,SY,0],[head2,0,SY+1.0*RS,0],[armL,-0.75*RS,SY+0.1*RS,0],[armR,0.75*RS,SY+0.1*RS,0],[legL,-0.26*RS,SY-1.1*RS,0],[legR,0.26*RS,SY-1.1*RS,0]];
     for(const [b,x,y,z] of parts){ b.position.set(x,y,z); b.velocity.setZero(); b.angularVelocity.setZero(); b.quaternion.set(0,0,0,1); b.initQuaternion.set(0,0,0,1); }
   }
+  window.__smashNearest = function(){ let best=null,bd=1e9; for(const b of buildings){ if(!b.alive) continue; const dx=b.x-torso.position.x, dz=b.z-torso.position.z; const d=dx*dx+dz*dz; if(d<bd){bd=d;best=b;} } if(best) destroyBuilding(best); };
 
   // --- 입력 ---
   const down={};
   addEventListener('keydown', e=>{ const k=e.key.toLowerCase(); down[k]=true; if(k==='r') resetRobot(); if(['arrowleft','arrowright',' '].includes(k)) e.preventDefault(); });
   addEventListener('keyup', e=>{ down[e.key.toLowerCase()]=false; });
-  document.querySelectorAll('#pad button[data-key]').forEach(b=>{
-    const key=b.getAttribute('data-key'); const on=e=>{e.preventDefault();down[key]=true;}; const off=e=>{if(e)e.preventDefault();down[key]=false;};
-    b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off); b.addEventListener('touchcancel',off);
-    b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off);
-  });
+  document.querySelectorAll('#pad button[data-key]').forEach(b=>{ const key=b.getAttribute('data-key'); const on=e=>{e.preventDefault();down[key]=true;}; const off=e=>{if(e)e.preventDefault();down[key]=false;};
+    b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off); b.addEventListener('touchcancel',off); b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off); });
   document.getElementById('btnReset').addEventListener('click',()=>resetRobot());
-
-  // --- 카메라 모드 ---
   let camMode=0; const camNames=['전경','와이드','로봇'];
   document.getElementById('camBtn').addEventListener('click', function(){ camMode=(camMode+1)%3; this.textContent='시점: '+camNames[camMode]; });
 
-  function motorFor(name,pk,mk){ const s=(down[pk]?1:0)-(down[mk]?1:0); hinges[name].setMotorSpeed(s*P.speed); hinges[name].setMotorMaxForce(P.power); }
+  function motorFor(name,pk,mk){ const s=(down[pk]?1:0)-(down[mk]?1:0); hinges[name].setMotorSpeed(s*P.speed); hinges[name].setMotorMaxForce(P.power*RS*RS); }
   const worldUp=new CANNON.Vec3(0,1,0), bUp=new CANNON.Vec3();
-  function balance(){ torso.quaternion.vmult(worldUp,bUp); const ax=bUp.cross(worldUp); const a=P.balance;
-    torso.angularVelocity.x+=ax.x*a/60; torso.angularVelocity.z+=ax.z*a/60; torso.angularVelocity.x*=0.98; torso.angularVelocity.z*=0.98; }
+  function balance(){ torso.quaternion.vmult(worldUp,bUp); const ax=bUp.cross(worldUp); const a=P.balance; torso.angularVelocity.x+=ax.x*a/60; torso.angularVelocity.z+=ax.z*a/60; torso.angularVelocity.x*=0.97; torso.angularVelocity.z*=0.97; }
 
-  const stEl=document.getElementById('st'), distEl=document.getElementById('dist');
+  const stEl=document.getElementById('st');
   let last=performance.now(), t=0;
   function frame(now){
     const dt=Math.min((now-last)/1000,1/30); last=now; t+=dt;
     motorFor('armL','q','w'); motorFor('armR','o','p'); motorFor('legL','a','z'); motorFor('legR','l','.');
-    const hs=(down['arrowright']?1:0)-(down['arrowleft']?1:0); hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power);
+    const hs=(down['arrowright']?1:0)-(down['arrowleft']?1:0); hinges.head.setMotorSpeed(hs*P.speed*0.7); hinges.head.setMotorMaxForce(P.power*RS*RS);
     balance(); world.step(1/60, dt, 3);
     for(const {body,mesh} of meshes){ mesh.position.copy(body.position); mesh.quaternion.copy(body.quaternion); }
-
-    // 괴물 아이들: 상하 진동 + 로봇 향해 살짝 흔들
-    monster.position.y=Math.sin(t*1.3)*0.25;
-    monster.rotation.y=Math.sin(t*0.4)*0.12;
-
-    // 사람들: 도망(시민) / 두리번(레인저) + 발동동
+    // 파편 갱신
+    for(let i=debris.length-1;i>=0;i--){ const d0=debris[i]; d0.mesh.position.copy(d0.body.position); d0.mesh.quaternion.copy(d0.body.quaternion); d0.life-=dt; if(d0.life<0){ scene.remove(d0.mesh); world.removeBody(d0.body); debris.splice(i,1); } }
+    monster.position.y=Math.sin(t*1.3)*0.25; monster.rotation.y=Math.sin(t*0.4)*0.1;
     const mp=monster.position;
-    for(const pe of people){
-      const g=pe.g; g.position.y=Math.abs(Math.sin(t*6+pe.phase))*0.06;
-      if(pe.flee){
-        const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1;
-        g.position.x+=dx/L*dt*1.6; g.position.z+=dz/L*dt*1.6;
-        g.rotation.y=Math.atan2(dx,dz);
-        if(L>60){ const ang=Math.random()*6.28, r=4+Math.random()*8; g.position.x=Math.cos(ang)*r; g.position.z=6+Math.sin(ang)*r; }
-      } else {
-        g.rotation.y=Math.sin(t*0.8+pe.phase)*0.6;
-      }
-    }
-
-    const st=head2.position.y-torso.position.y;
-    stEl.textContent = st<0.35?'넘어짐':'서있음';
-    distEl.textContent = Math.hypot(torso.position.x, torso.position.z).toFixed(1);
-
-    // 카메라
-    const tp=torso.position;
-    let desired, look;
-    if(camMode===0){ desired=new THREE.Vector3(tp.x+5, 7, tp.z+18); look=new THREE.Vector3(tp.x, 2.5, tp.z-9); }
-    else if(camMode===1){ desired=new THREE.Vector3(24, 20, 34); look=new THREE.Vector3(0, 4, -8); }
-    else { desired=new THREE.Vector3(tp.x+4, tp.y+3.5, tp.z+8); look=new THREE.Vector3(tp.x, tp.y+0.5, tp.z); }
+    for(const pe of people){ const g=pe.g; g.position.y=Math.abs(Math.sin(t*6+pe.phase))*0.06;
+      if(pe.flee){ const dx=g.position.x-mp.x, dz=g.position.z-mp.z; const L=Math.hypot(dx,dz)||1; g.position.x+=dx/L*dt*1.8; g.position.z+=dz/L*dt*1.8; g.rotation.y=Math.atan2(dx,dz); if(L>70){ const a=Math.random()*6.28,r=5+Math.random()*9; g.position.x=Math.cos(a)*r; g.position.z=9+Math.sin(a)*r; } }
+      else g.rotation.y=Math.sin(t*0.8+pe.phase)*0.6; }
+    const st=(head2.position.y-torso.position.y)/RS; stEl.textContent = st<0.35?'넘어짐':'서있음';
+    const tp=torso.position; let desired,look;
+    if(camMode===0){ desired=new THREE.Vector3(tp.x+9,14,tp.z+34); look=new THREE.Vector3(tp.x,5,tp.z-14); }
+    else if(camMode===1){ desired=new THREE.Vector3(26,60,94); look=new THREE.Vector3(2,4,-12); }
+    else { desired=new THREE.Vector3(tp.x+8,tp.y+7,tp.z+16); look=new THREE.Vector3(tp.x,tp.y+1,tp.z); }
     camera.position.lerp(desired, camMode===1?0.04:0.06); camera.lookAt(look);
-
     renderer.render(scene,camera); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

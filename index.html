@@ -119,8 +119,15 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   scene.add(new THREE.HemisphereLight(0x8b9ad8,0x3a2c46,1.0)); scene.add(new THREE.AmbientLight(0x404a6e,0.4));
   const key=new THREE.DirectionalLight(0xffd2a0,1.6); key.position.set(-40,36,22); key.castShadow=true; key.shadow.mapSize.set(2048,2048); const S=60; key.shadow.camera.left=-S; key.shadow.camera.right=S; key.shadow.camera.top=S; key.shadow.camera.bottom=-S; key.shadow.camera.far=220; key.shadow.bias=-0.0004; scene.add(key);
   const fill=new THREE.DirectionalLight(0x6f8bff,0.55); fill.position.set(30,18,-20); scene.add(fill);
-  const ground3=new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.MeshStandardMaterial({color:0x222036,roughness:1})); ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
-  const grid=new THREE.GridHelper(900,180,0x3a3a66,0x2a2748); grid.position.y=0.02; scene.add(grid);
+  // 도심 지면 텍스처: 도로 그리드 + 차선 + 횡단보도 + 블록/공원
+  function cityGroundTexture(){ const c=document.createElement('canvas'); c.width=1024;c.height=1024; const g=c.getContext('2d');
+    g.fillStyle='#1b1f2a'; g.fillRect(0,0,1024,1024); const N=20, cell=1024/N, rw=cell*0.30;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){ const park=Math.random()<0.12; g.fillStyle=park?'#24401f':(Math.random()<0.5?'#2b3040':'#262b39'); g.fillRect(i*cell+rw/2,j*cell+rw/2,cell-rw,cell-rw); if(!park){ g.fillStyle='rgba(255,255,255,0.03)'; for(let k=0;k<3;k++) g.fillRect(i*cell+rw/2+4,j*cell+rw/2+4+k*((cell-rw)/3),cell-rw-8,2);} }
+    g.fillStyle='#101319'; for(let i=0;i<=N;i++){ g.fillRect(i*cell-rw/2,0,rw,1024); g.fillRect(0,i*cell-rw/2,1024,rw); }
+    g.strokeStyle='#e8c14a'; g.lineWidth=2.2; g.setLineDash([12,12]); for(let i=0;i<=N;i++){ g.beginPath(); g.moveTo(i*cell,0); g.lineTo(i*cell,1024); g.stroke(); g.beginPath(); g.moveTo(0,i*cell); g.lineTo(1024,i*cell); g.stroke(); } g.setLineDash([]);
+    g.fillStyle='#d5dae6'; for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){ for(let s=-2;s<=2;s++){ g.fillRect(i*cell-rw/2, j*cell+s*4-1, rw,2); g.fillRect(i*cell+s*4-1, j*cell-rw/2, 2,rw);} }
+    const t=new THREE.CanvasTexture(c); t.anisotropy=8; return t; }
+  const ground3=new THREE.Mesh(new THREE.PlaneGeometry(900,900), new THREE.MeshStandardMaterial({map:cityGroundTexture(),roughness:0.95})); ground3.rotation.x=-Math.PI/2; ground3.receiveShadow=true; scene.add(ground3);
 
   const world=new CANNON.World(); world.gravity.set(0,-P.gravity,0); world.broadphase=new CANNON.SAPBroadphase(world); world.solver.iterations=18; world.defaultContactMaterial.contactEquationStiffness=1e7;
   const GROUND=1, ROBOT=2, BUILDING=4;
@@ -136,7 +143,24 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   function makeBuilding(x,z,w,h,d,rot){ const mesh=new THREE.Mesh(bGeo,bMat); mesh.scale.set(w,h,d); mesh.position.set(x,h/2,z); mesh.rotation.y=rot; mesh.castShadow=true; mesh.receiveShadow=true; scene.add(mesh);
     const body=new CANNON.Body({mass:0,collisionFilterGroup:BUILDING,collisionFilterMask:ROBOT|BUILDING|GROUND,position:new CANNON.Vec3(x,h/2,z)}); body.addShape(new CANNON.Box(new CANNON.Vec3(w/2,h/2,d/2))); body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),rot); world.addBody(body);
     const b={mesh,body,alive:true,w,h,d,x,z}; body.addEventListener('collide',function(){ if(b.alive) destroyBuilding(b); }); buildings.push(b); }
-  for(let i=0;i<48;i++){ const ang=Math.random()*6.28, rad=44+Math.random()*110; makeBuilding(Math.cos(ang)*rad, Math.sin(ang)*rad-6, 5+Math.random()*6, 10+Math.random()*42, 5+Math.random()*6, Math.random()*Math.PI); }
+  const NEON=[0xff3b7b,0x39e6ff,0xffd23b,0x8affc1,0xff7a2f,0xb06bff];
+  function addBuildingDetail(x,z,w,h,d,rot){ // 옥상 물탱크/안테나/AC + 네온 간판
+    B(scene,Math.min(w*0.5,2.4),1.8,Math.min(d*0.5,2.4),0x3a4256,x,h+0.9,z,{ro:0.8,me:0.3}); B(scene,0.16,3.4,0.16,0x6a748c,x+w*0.28,h+1.7,z-d*0.28,{me:0.6}); B(scene,w*0.4,0.7,d*0.4,0x2b3140,x-w*0.2,h+0.35,z+d*0.2,{ro:0.9});
+    if(Math.random()<0.6){ const c=NEON[(Math.random()*NEON.length)|0]; const dir=new THREE.Vector3(Math.sin(rot),0,Math.cos(rot)); const off=(Math.abs(Math.sin(rot))>0.5?w:d)/2+0.2; B(scene,(Math.abs(Math.sin(rot))>0.5?d:w)*0.55,h*0.32,0.3,c,x+dir.x*off,h*0.55,z+dir.z*off,{em:c,ei:2.4,ro:0.4,ry:rot}); } }
+  for(let n=-3;n<=3;n++)for(let m=-3;m<=3;m++){ const cx=45*n+22.5, cz=45*m+22.5; const r=Math.hypot(cx,cz); if(r<55||r>155) continue; if(Math.random()<0.1) continue; const w=9+Math.random()*8, d=9+Math.random()*8, h=12+Math.random()*40, rot=(Math.random()<0.5?0:Math.PI/2); const bx=cx+(Math.random()*4-2), bz=cz+(Math.random()*4-2); makeBuilding(bx,bz,w,h,d,rot); addBuildingDetail(bx,bz,w,h,d,rot); }
+  // === 거리 소품: 가로등 / 가로수 / 주차 차량 ===
+  const lightPos=[], treePos=[], carPos=[];
+  for(let k=-3;k<=3;k++){ for(let s=-3;s<=3;s++){ const rx=45*k, rz=45*s+22.5; if(Math.hypot(rx,rz)>150||Math.hypot(rx,rz)<40) continue; lightPos.push({x:rx+3.5,z:rz}); } }
+  for(let k=-3;k<=3;k++)for(let m=-3;m<=3;m++){ const cx=45*k+22.5, cz=45*m+22.5, r=Math.hypot(cx,cz); if(r<48||r>150) continue; if(Math.random()<0.5) treePos.push({x:cx+ (Math.random()*20-10), z:cz+(Math.random()*20-10)}); if(Math.random()<0.4) carPos.push({x:cx+16, z:cz+(Math.random()*20-10), ry:Math.random()*6.28}); }
+  // 가로등 (인스턴스): 기둥 + 발광 헤드
+  (function(){ if(!lightPos.length) return; const pole=new THREE.InstancedMesh(new THREE.BoxGeometry(0.3,8,0.3),M(0x3a4050,{me:0.4}),lightPos.length); const head=new THREE.InstancedMesh(new THREE.BoxGeometry(1.4,0.4,0.7),M(0xfff0c0,{em:0xffdf9a,ei:2.6}),lightPos.length); const d=new THREE.Object3D(); pole.castShadow=true;
+    lightPos.forEach((p,i)=>{ d.position.set(p.x,4,p.z); d.rotation.set(0,0,0); d.updateMatrix(); pole.setMatrixAt(i,d.matrix); d.position.set(p.x,7.9,p.z-0.6); d.updateMatrix(); head.setMatrixAt(i,d.matrix); }); pole.instanceMatrix.needsUpdate=true; head.instanceMatrix.needsUpdate=true; scene.add(pole); scene.add(head); })();
+  // 가로수 (인스턴스): 기둥 + 잎
+  (function(){ if(!treePos.length) return; const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.22,0.3,2.2,7),M(0x5a3d28,{ro:0.9,me:0}),treePos.length); const leaf=new THREE.InstancedMesh(new THREE.ConeGeometry(1.5,3.2,8),M(0x2f7a34,{ro:0.9,me:0}),treePos.length); const d=new THREE.Object3D(); trunk.castShadow=true; leaf.castShadow=true;
+    treePos.forEach((p,i)=>{ d.position.set(p.x,1.1,p.z); d.updateMatrix(); trunk.setMatrixAt(i,d.matrix); d.position.set(p.x,3.4,p.z); d.updateMatrix(); leaf.setMatrixAt(i,d.matrix); }); trunk.instanceMatrix.needsUpdate=true; leaf.instanceMatrix.needsUpdate=true; scene.add(trunk); scene.add(leaf); })();
+  // 주차 차량 (개별, 색상 다양)
+  const carCols=[0xd23f3f,0x3f7bd2,0xe8b53f,0x46b06a,0xdedede,0x8a8f9a];
+  carPos.slice(0,16).forEach((p,i)=>{ const g=new THREE.Group(); const col=carCols[i%carCols.length]; B(g,1.6,0.55,3.4,col,0,0.45,0,{me:0.4}); B(g,1.5,0.5,1.7,col,0,0.9,-0.2,{me:0.4}); B(g,1.42,0.34,1.5,GLASS,0,0.92,-0.2,glassO); B(g,0.4,0.2,0.15,0xffe9a0,0.55,0.4,1.72,{em:0xffe9a0,ei:1.5}); B(g,0.4,0.2,0.15,0xffe9a0,-0.55,0.4,1.72,{em:0xffe9a0,ei:1.5}); g.traverse(m=>{if(m.isMesh)m.castShadow=true;}); g.position.set(p.x,0,p.z); g.rotation.y=p.ry; scene.add(g); });
   function destroyBuilding(b){ b.alive=false; wrecked++; wreckedEl.textContent=wrecked; scene.remove(b.mesh); world.removeBody(b.body); const nx=2,ny=Math.max(2,Math.round(b.h/6)),nz=2,cw=b.w/nx,ch=b.h/ny,cd=b.d/nz;
     for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){ const px=b.x+(ix+0.5-nx/2)*cw,py=(iy+0.5)*ch,pz=b.z+(iz+0.5-nz/2)*cd; const body=new CANNON.Body({mass:3,collisionFilterGroup:BUILDING,collisionFilterMask:GROUND|BUILDING|ROBOT,position:new CANNON.Vec3(px,py,pz),angularDamping:0.2}); body.addShape(new CANNON.Box(new CANNON.Vec3(cw/2,ch/2,cd/2))); body.velocity.set((Math.random()-0.5)*7,Math.random()*5,(Math.random()-0.5)*7); body.angularVelocity.set((Math.random()-0.5)*5,(Math.random()-0.5)*5,(Math.random()-0.5)*5); world.addBody(body); const mesh=new THREE.Mesh(bGeo,debMat); mesh.scale.set(cw,ch,cd); mesh.castShadow=true; scene.add(mesh); debris.push({body,mesh,life:7}); }
     while(debris.length>200){ const d0=debris.shift(); scene.remove(d0.mesh); world.removeBody(d0.body); } }
@@ -150,8 +174,8 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
   const people=[]; for(let i=0;i<14;i++){ const p=makePerson(0xaeb7c9); const a=Math.random()*6.28,r=6+Math.random()*11; p.position.set(Math.cos(a)*r,0,10+Math.sin(a)*r*0.5); scene.add(p); people.push({g:p,phase:Math.random()*6.28}); }
 
   // === 플레이어 인간 (레인저) ===
-  function buildHero(){ const g=new THREE.Group(); B(g,0.34,0.5,0.22,RED,0,0.55,0); B(g,0.3,0.28,0.26,WHITE,0,0.92,0); B(g,0.28,0.09,0.1,DARK,0,0.9,0.14); B(g,0.1,0.06,0.12,CYAN,0,0.9,0.19,glowO(CYAN));
-    B(g,0.12,0.4,0.12,RED,-0.24,0.55,0); B(g,0.12,0.4,0.12,RED,0.24,0.55,0); B(g,0.14,0.44,0.14,0x232a38,-0.1,0.2,0); B(g,0.14,0.44,0.14,0x232a38,0.1,0.2,0); g.traverse(m=>{if(m.isMesh)m.castShadow=true;}); g.scale.setScalar(1.15); return g; }
+  // 시민과 같은 사람 크기(색/헬멧으로만 구분) — 스케일감 유지
+  function buildHero(){ const g=new THREE.Group(); B(g,0.18,0.26,0.12,RED,0,0.22,0,{ro:0.6}); B(g,0.2,0.16,0.18,WHITE,0,0.44,0,{ro:0.5}); B(g,0.16,0.055,0.06,CYAN,0,0.43,0.09,glowO(CYAN)); B(g,0.07,0.22,0.07,RED,-0.14,0.2,0,{ro:0.6}); B(g,0.07,0.22,0.07,RED,0.14,0.2,0,{ro:0.6}); B(g,0.08,0.2,0.08,0x232a38,-0.06,0.05,0); B(g,0.08,0.2,0.08,0x232a38,0.06,0.05,0); g.traverse(m=>{if(m.isMesh)m.castShadow=true;}); return g; }
   const human=buildHero(); human.position.set(0,0,20); scene.add(human); let heading=Math.PI; // 도시(−z)를 향해
 
   // === 탈것 5기 ===
@@ -258,7 +282,7 @@ T>=2*U&&(x._wakeUpAfterNarrowphase=!0)}if(R.allowSleep&&R.type===c.DYNAMIC&&R.sl
     let desired, look;
     if(camMode===1){ desired=new THREE.Vector3(24,52,80); look=new THREE.Vector3(2,7,-14); }
     else if(state==='combined'){ const up=6; desired=new THREE.Vector3(foc.x+6,20,foc.z+ (camMode===2?15:33)); look=new THREE.Vector3(foc.x,up,foc.z-10); }
-    else { const dist=(state==='piloting')?14:6, hgt=(state==='piloting')?(planes[playerIdx>=0?playerIdx:0].air?7:4):3.2; desired=new THREE.Vector3(foc.x-Math.sin(hd)*dist, foc.y+hgt, foc.z-Math.cos(hd)*dist); look=new THREE.Vector3(foc.x,foc.y+1,foc.z); }
+    else { const pilot=(state==='piloting'); const dist=pilot?14:4, hgt=pilot?(planes[playerIdx>=0?playerIdx:0].air?7:4):2.0, ly=pilot?1:0.6; desired=new THREE.Vector3(foc.x-Math.sin(hd)*dist, foc.y+hgt, foc.z-Math.cos(hd)*dist); look=new THREE.Vector3(foc.x,foc.y+ly,foc.z); }
     camera.position.lerp(desired, camMode===1?0.04:0.08); camera.lookAt(look);
     renderer.render(scene,camera); requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
